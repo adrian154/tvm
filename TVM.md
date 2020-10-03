@@ -86,7 +86,7 @@ becomes
 |IFE|0x27| | | | |Runs next instruction if the equal flag is set. Otherwise, skips|
 |IFLE|0x28| | | | |Runs next instruction if the greater flag is not set or the equal flag is set. Otherwise, skips|
 |IFL|0x29| | | | |Runs next instruction if the greater flag is not set. Otherwise, skips|
-|CALL|0x2E|Src| | | |Stores RF onto the stack (equivalent to a `PUSHW RF`) and sets RF to Src|
+|CALL|0x2E|Src| | | |Stores RF into memory at location \[RE] and sets RF to the value of Src|
 
 # TODO
 Stack and interrupts
