@@ -48,12 +48,12 @@ becomes
 |--------|------|---------|---------|---------|---------|----|
 |NOP|0x00| | | | |No-op|
 |MOV|0x01|Src|Reg Dst| | |Moves value of Src into register Dst|
-|STOREB|0x02|Src|Imm16 Dst| | |Stores lower 8 bits of value of Src in memory at location [Dst]|
-|STOREB|0x03|Src|Reg Dst| | |Stores lower 8 bits of value of Src in memory at location [Dst]|
-|STOREW|0x04|Src|Imm16 Dst| | |Stores value of Src in memory at location [Dst]|
-|STOREW|0x05|Src|Reg Dst| | |Stores value of Src in memory at location [Dst]|
-|LOADW|0x07|Src|Reg Dst| | |Loads 16-bit value in memory at location [Src] into register Dst|
-|LOADB|0x08|Src|Reg Dst| | |Loads 8-bit value in memory at location [Src] into register Dst|
+|STOREB|0x02|Src|Imm16 Dst| | |Stores lower 8 bits of value of Src in memory at location \[Dst]|
+|STOREB|0x03|Src|Reg Dst| | |Stores lower 8 bits of value of Src in memory at location \[Dst]|
+|STOREW|0x04|Src|Imm16 Dst| | |Stores value of Src in memory at location \[Dst]|
+|STOREW|0x05|Src|Reg Dst| | |Stores value of Src in memory at location \[Dst]|
+|LOADW|0x07|Src|Reg Dst| | |Loads 16-bit value in memory at location \[Src] into register Dst|
+|LOADB|0x08|Src|Reg Dst| | |Loads 8-bit value in memory at location \[Src] into register Dst|
 |AND|0x0A|Src A|Src B|Reg Dst| |Stores bitwise AND of A and B into register Dst|
 |OR|0x0B|Src A|Src B|Reg Dst| |Stores bitwise OR of A and B into register Dst|
 |XOR|0x0C|Src A|Src B|Reg Dst| |Stores bitwise XOR of A and B into register Dst|
@@ -74,18 +74,19 @@ becomes
 |SG|0x1B| | | | |Sets the greater flag|
 |CE|0x1C| | | | |Clears the equal flag|
 |SE|0x1D| | | | |Sets the equal flag|
-|MUL|0x1E|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 into registers [DstHi, DstLo]|
+|MUL|0x1E|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 into registers \[DstHi, DstLo]|
 |MULT|0x1F|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 into register Dst, truncating the upper 16 bits of the result|
-|MUL|0x20|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 (unsigned) into registers [DstHi, DstLo]|
+|MUL|0x20|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 (unsigned) into registers \[DstHi, DstLo]|
 |UMULT|0x21|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 (unsigned) into register Dst, truncating the upper 16 bits of the result|
 |DIV|0x22|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 into register Dst|
 |UDIV|0x23|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 (unsigned) into register Dst|
-|CMP|0x24|Src Val1|Src Val2| | |Sets equal flag if Val1 == Val2 and clears it if not. Sets greater flag if Val1 > Val2 and clears it if not.|
-|IFG|0x25| | | | |Runs next instruction if the greater flag is set. Otherwise, skips.|
-|IFGE|0x26| | | | |Runs next instruction if the greater flag is set or the equal flag is set. Otherwise, skips.|
-|IFE|0x27| | | | |Runs next instruction if the equal flag is set. Otherwise, skips.|
-|IFLE|0x28| | | | |Runs next instruction if the greater flag is not set or the equal flag is set. Otherwise, skips.|
-|IFL|0x29| | | | |Runs next instruction if the greater flag is not set. Otherwise, skips.|
+|CMP|0x24|Src Val1|Src Val2| | |Sets equal flag if Val1 == Val2 and clears it if not. Sets greater flag if Val1 > Val2 and clears it if not|
+|IFG|0x25| | | | |Runs next instruction if the greater flag is set. Otherwise, skips|
+|IFGE|0x26| | | | |Runs next instruction if the greater flag is set or the equal flag is set. Otherwise, skips|
+|IFE|0x27| | | | |Runs next instruction if the equal flag is set. Otherwise, skips|
+|IFLE|0x28| | | | |Runs next instruction if the greater flag is not set or the equal flag is set. Otherwise, skips|
+|IFL|0x29| | | | |Runs next instruction if the greater flag is not set. Otherwise, skips|
+|CALL|0x2E|Src| | | |Stores RF onto the stack (equivalent to a `PUSHW RF`) and sets RF to Src|
 
 # TODO
 Stack and interrupts
