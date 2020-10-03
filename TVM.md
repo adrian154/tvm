@@ -60,7 +60,6 @@ becomes
 |NOT|0x0D|Reg SrcDst| | | |Stores bitwise NOT of register SrcDst into register SrcDst|
 |LSL|0x0E|Src Val|Src Bits|Reg Dst| |Stores Val << Bits into register Dst, not preserving the sign bit|
 |LSR|0x0F|Src Val|Src Bits|Reg Dst| |Stores Val >> Bits into register Dst, not preserving the sign bit|
-|ASL|0x10|Src Val|Src Bits|Reg Dst| |Stores Val << Bits into register Dst, preserving the sign bit|
 |ASR|0x11|Src Val|Src Bits|Reg Dst| |Stores Val >> Bits into register Dst, preserving the sign bit|
 |ADD|0x12|Src Val1|Src Val2|Reg Dst| |Stores Val1 + Val2 into register Dst. Updates carry flag|
 |ADDC|0x13|Src Val1|Src Val2|Reg Dst| |Stores Val1 + Val2 into register Dst, taking into account the carry flag. Updates the carry flag|
