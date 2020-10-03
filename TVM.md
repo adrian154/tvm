@@ -76,7 +76,7 @@ becomes
 |SE|0x1D| | | | |Sets the equal flag|
 |MUL|0x1E|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 into registers \[DstHi, DstLo]|
 |MULT|0x1F|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 into register Dst, truncating the upper 16 bits of the result|
-|MUL|0x20|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 (unsigned) into registers \[DstHi, DstLo]|
+|UMUL|0x20|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 (unsigned) into registers \[DstHi, DstLo]|
 |UMULT|0x21|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 (unsigned) into register Dst, truncating the upper 16 bits of the result|
 |DIV|0x22|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 into register Dst|
 |UDIV|0x23|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 (unsigned) into register Dst|
