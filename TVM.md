@@ -26,14 +26,33 @@ There a few patterns of instruction operands, with the following encodings:
 
 **Register operands**
 
-* `R<A>, R<B>` is encoded as `0x<A><B>` (e.g. `R0, R3` becomes `0x03`)
-* `R<A>, R<B>, R<C>` is encoded as `0x<A><B> 0x<C>0` (e.g. `R2, R3, R4` becomes `0x23 0x40`)
-* `R<A>, R<B>, R<C>, R<D>` is encoded as `0x<A><B> 0x<C><D>` (e.g. `R2, R3, R4, R5` becomes `0x23 0x45`)
+* `RA, RB` is encoded as `0xAB`
+* `RA, RB, RC` is encoded as `0xAB 0xC0`
+* `RA, RB, RC, RD` is encoded as `0xAB 0xCD`
 
 **Immediate operands**
 
-* `Imm8, R<A>`: `0x<Imm> 0x<A>0` (e.g. `0xFF, R5` becomes `0xFF 0x50`)
-* `Imm16, R<A>`: `0x<ImmLo> 0x<ImmHi> 0x<A>0` (e.g. `0xDEAD, R6` becomes `0xAD 0xDE 0x60`)
+* `Imm8, RA` is encoded as `Imm 0xA0`
+* `Imm16, RA` is encoded as `ImmLo ImmHi 0xA0`
+
+Examples:
+
+```
+MOV RA, RB =
+0x01 0xAB
+
+MOV 0xFF, RA =
+0x01 0xFF 0xA0
+
+MOV 0xBEEF, RA =
+0x01 0xEF 0xBE 0xA0
+
+ADD RA, RB, RC =
+0x0E 0xAB 0xC0
+
+MUL RA, RB, RC, RD =
+0x12 0xAB 0xCD
+```
 
 |Mnemonic|Opcode|Operand 1 |Operand 2 |Operand 3 |Operand 4 |Desc|
 |--------|------|----------|----------|----------|----------|----|
