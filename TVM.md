@@ -72,3 +72,6 @@ There a few patterns of instruction operands, with the following encodings:
 |CALL    |0x1F  | Reg      |          |          |          | Pushes RF onto the stack, and sets RF to the register |
 |PUSHB   |0x20  | Reg      |          |          |          | Sets the byte in memory pointed to by RF to the register, and decrements RF |
 |PUSHW   |0x21  | Reg      |          |          |          | Sets the word in memory pointed to by RF to the register, and decrements RF |
+
+# TODO
+Support for signed operations, describe interrupts/devices
