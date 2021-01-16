@@ -4,88 +4,71 @@ TVM is a purely emulated CPU architecture since I like assembly programming but 
 
 # General Info
 
-The TVM is 16-bit and can access 64K of memory. Data in memory is stored in little-endian order.
+The TVM is 16-bit and can address 64K of memory. Data in memory is stored in little-endian order.
+
+A *byte* refers to an 8-bit value while a *word* refers to a 16-bit value.
 
 # Registers
 
 The TVM has 16 general-purpose registers, labeled R0 to RF. Each register is 16-bits wide.
 
-RF points to the next instruction, and RE is used as a stack register.
+RF points to the next instruction, and RE is used as a stack register by convention.
 
-The TVM has some flag registers. How these are stored is implemetation-dependent.
+The TVM has some flags that can be set and unset with specialized instructions.
 * Carry flag
 * Borrow flag
-* Greater flag
-* Equal flag
 
 # Instructions
 
-Instructions are decoded according to the following process:
+The first byte of an instruction is always the opcode.
 
-* Read first byte, the opcode
-* The lowest six bits represent the instruction
-* For each operand the instruction accepts:
-  * If the operand is a source:
-    * If the operand is the first source, look at the 7th bit in the opcode. If that bit is 0, the operand should be read as an register. If the bit is 1, the operand should be read as an immediate value.
-    * If the operand is the second source, repeat the same process but instead look at the 8th bit in the opcode.
-  * Otherwise, the operator is encoded as a register.
+There a few patterns of instruction operands, with the following encodings:
 
-Register operands are encoded as a single byte corresponding to the register number. Immediate value operands are encoded as two bytes, a little-endian 16-bit integer.
+**Register operands**
 
-For example:
+* `R<A>, R<B>` is encoded as `0x<A><B>` (e.g. `R0, R3` becomes `0x03`)
+* `R<A>, R<B>, R<C>` is encoded as `0x<A><B> 0x<C>0` (e.g. `R2, R3, R4` becomes `0x23 0x40`)
+* `R<A>, R<B>, R<C>, R<D>` is encoded as `0x<A><B> 0x<C><D>` (e.g. `R2, R3, R4, R5` becomes `0x23 0x45`)
 
-```
-MOV R0, R5
-becomes
-0x01 0x00 0x05 
+**Immediate operands**
 
-MOV 0xDEAD, R5
-becomes
-0x41 0xAD 0xDE 0x05
-```
+* `Imm8, R<A>`: `0x<Imm> 0x<A>0` (e.g. `0xFF, R5` becomes `0xFF 0x50`)
+* `Imm16, R<A>`: `0x<ImmLo> 0x<ImmHi> 0x<A>0` (e.g. `0xDEAD, R6` becomes `0xAD 0xDE 0x60`)
 
-|Mnemonic|Opcode|Operand 1|Operand 2|Operand 3|Operand 4|Desc|
-|--------|------|---------|---------|---------|---------|----|
-|NOP|0x00| | | | |No-op|
-|MOV|0x01|Src|Reg Dst| | |Moves value of Src into register Dst|
-|STOREB|0x02|Src|Imm16 Dst| | |Stores lower 8 bits of value of Src in memory at location \[Dst]|
-|STOREB|0x03|Src|Reg Dst| | |Stores lower 8 bits of value of Src in memory at location \[Dst]|
-|STOREW|0x04|Src|Imm16 Dst| | |Stores value of Src in memory at location \[Dst]|
-|STOREW|0x05|Src|Reg Dst| | |Stores value of Src in memory at location \[Dst]|
-|LOADW|0x07|Src|Reg Dst| | |Loads 16-bit value in memory at location \[Src] into register Dst|
-|LOADB|0x08|Src|Reg Dst| | |Loads 8-bit value in memory at location \[Src] into register Dst|
-|AND|0x0A|Src A|Src B|Reg Dst| |Stores bitwise AND of A and B into register Dst|
-|OR|0x0B|Src A|Src B|Reg Dst| |Stores bitwise OR of A and B into register Dst|
-|XOR|0x0C|Src A|Src B|Reg Dst| |Stores bitwise XOR of A and B into register Dst|
-|NOT|0x0D|Reg SrcDst| | | |Stores bitwise NOT of register SrcDst into register SrcDst|
-|LSL|0x0E|Src Val|Src Bits|Reg Dst| |Stores Val << Bits into register Dst, not preserving the sign bit|
-|LSR|0x0F|Src Val|Src Bits|Reg Dst| |Stores Val >> Bits into register Dst, not preserving the sign bit|
-|ASR|0x11|Src Val|Src Bits|Reg Dst| |Stores Val >> Bits into register Dst, preserving the sign bit|
-|ADD|0x12|Src Val1|Src Val2|Reg Dst| |Stores Val1 + Val2 into register Dst. Updates carry flag|
-|ADDC|0x13|Src Val1|Src Val2|Reg Dst| |Stores Val1 + Val2 into register Dst, taking into account the carry flag. Updates the carry flag|
-|SUB|0x14|Src Val1|Src Val2|Reg Dst| |Stores Val1 - Val2 into register Dst. Updates borrow flag|
-|SUBB|0x15|Src Val1|Src Val2|Reg Dst| |Stores Val1 - Val2 into register Dst, taking into account the borrow flag. Updates the borrow flag|
-|CC|0x16| | | | |Clears the carry flag|
-|SC|0x17| | | | |Sets the carry flag|
-|CB|0x18| | | | |Clears the borrow flag|
-|SB|0x19| | | | |Sets the borrow flag|
-|CG|0x1A| | | | |Clears the greater flag|
-|SG|0x1B| | | | |Sets the greater flag|
-|CE|0x1C| | | | |Clears the equal flag|
-|SE|0x1D| | | | |Sets the equal flag|
-|MUL|0x1E|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 into registers \[DstHi, DstLo]|
-|MULT|0x1F|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 into register Dst, truncating the upper 16 bits of the result|
-|UMUL|0x20|Src Val1|Src Val2|Reg DstHi|Reg DstLo|Stores Val1 * Val2 (unsigned) into registers \[DstHi, DstLo]|
-|UMULT|0x21|Src Val1|Src Val2|Reg Dst| |Stores Val1 * Val2 (unsigned) into register Dst, truncating the upper 16 bits of the result|
-|DIV|0x22|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 into register Dst|
-|UDIV|0x23|Src Val1|Src Val2|Reg Dst| |Stores Val1 / Val2 (unsigned) into register Dst|
-|CMP|0x24|Src Val1|Src Val2| | |Sets equal flag if Val1 == Val2 and clears it if not. Sets greater flag if Val1 > Val2 and clears it if not|
-|IFG|0x25| | | | |Runs next instruction if the greater flag is set. Otherwise, skips|
-|IFGE|0x26| | | | |Runs next instruction if the greater flag is set or the equal flag is set. Otherwise, skips|
-|IFE|0x27| | | | |Runs next instruction if the equal flag is set. Otherwise, skips|
-|IFLE|0x28| | | | |Runs next instruction if the greater flag is not set or the equal flag is set. Otherwise, skips|
-|IFL|0x29| | | | |Runs next instruction if the greater flag is not set. Otherwise, skips|
-|CALL|0x2E|Src| | | |Stores RF into memory at location \[RE] and sets RF to the value of Src|
-
-# TODO
-Stack and interrupts
+|Mnemonic|Opcode|Operand 1 |Operand 2 |Operand 3 |Operand 4 |Desc|
+|--------|------|----------|----------|----------|----------|----|
+|NOP     |0x00  |          |          |          |          |    |
+|MOV     |0x01  | Reg(Src) | Reg(Dst) |          |          | Sets register Dst to the value stored in register Src |
+|MOV     |0x02  | Imm8     | Reg      |          |          | Sets lower byte of the register to the immediate value |
+|MOV     |0x03  | Imm16    | Reg      |          |          | Sets the register to the immediate value |
+|STOREB  |0x04  | Reg(Src) | Reg(Ptr) |          |          | Sets the byte in memory pointed to by register Ptr to the value of the lower byte of register Src |
+|STOREW  |0x05  | Reg(Src) | Reg(Ptr) |          |          | Sets the word in memory pointed to by register Ptr to the value of register Src |
+|LOADB   |0x06  | Reg(Ptr) | Reg(Dst) |          |          | Sets the lower byte of register Dst to the byte in memory pointed to by register Ptr |
+|LOADW   |0x07  | Reg(Ptr) | Reg(Dst) |          |          | Sets register Dst to the word in memory pointed to by register Ptr |
+|NOT     |0x08  | Reg(Src) | Reg(DST) |          |          | Sets register Dst to the bitwise NOT of register Src
+|AND     |0x08  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise AND of register A and B |
+|OR      |0x09  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise OR of register A and B | 
+|XOR     |0x0A  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise XOR of reigster A and B |
+|ASL     |0x0B  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted left by (register Bits) bits |
+|ASR     |0x0C  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted right by (register Bits) bits, preserving the sign bit (MSB) |
+|LSR     |0x0D  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted right by (register Bits) bits, **not** preserving the sign bit |
+|ADD     |0x0E  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A plus register B. Updates the carry flag |
+|ADDC    |0x0F  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A plus register B, **taking into account the carry flag**. Updates the carry flag |
+|SUB     |0x10  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A minus register B. Updates the borrow flag |
+|SUBB    |0x11  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A minus register B, **taking into account the borrow flag**. Updates the borrow flag |
+|MUL     |0x12  | Reg(A)   | Reg(B)   |Reg(DstHi)|Reg(DstLo)| Sets \[DstHi, DstLo] to the value of register A times register B, treating the two registers as one 32-bit value |
+|MULT    |0x13  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets Dst to the value of register A times register B, truncating the upper 16 bits of the result |
+|DIV     |0x14  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets Dst to the value of register A divided by register B |
+|CC      |0x15  |          |          |          |          | Clears the carry flag |
+|SC      |0x16  |          |          |          |          | Sets the carry flag |
+|CB      |0x17  |          |          |          |          | Clears the borrow flag |
+|SB      |0x18  |          |          |          |          | Sets the borrow flag |
+|IFZ     |0x19  | Reg      |          |          |          | Runs the next instruction only if the register is zero |
+|IFNZ    |0x1A  | Reg      |          |          |          | Runs the next instruction only if the register is not zero |
+|IFEQ    |0x1B  | Reg(A)   | Reg(B)   |          |          | Runs the next instruction only if register A equals register B |
+|IFNEQ   |0x1C  | Reg(A)   | Reg(B)   |          |          | Runs the next instruction only if register A does not equal register B |
+|IFG     |0x1D  | Reg(A)   | Reg(B)   |          |          | Runs the next instruction only if register A is greater than register B |
+|IFL     |0x1E  | Reg(A)   | Reg(B)   |          |          | Runs the next instruction only if register A is less than register B |
+|CALL    |0x1F  | Reg      |          |          |          | Pushes RF onto the stack, and sets RF to the register |
+|PUSHB   |0x20  | Reg      |          |          |          | Sets the byte in memory pointed to by RF to the register, and decrements RF |
+|PUSHW   |0x21  | Reg      |          |          |          | Sets the word in memory pointed to by RF to the register, and decrements RF |
