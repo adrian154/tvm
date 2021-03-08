@@ -24,14 +24,14 @@ There a few patterns of instruction operands, with the following encodings:
 
 **Register operands**
 
-* `RA` is encoded as `0xA0`
+* `RA` is encoded as `0x0A`
 * `RA, RB` is encoded as `0xAB`
 * `RA, RB, RC, RD` is encoded as `0xAB 0xCD`
 
 **Immediate operands**
 
-* `Imm8, RA` is encoded as `Imm 0xA0`
-* `Imm16, RA` is encoded as `ImmLo ImmHi 0xA0`
+* `Imm8, RA` is encoded as `Imm 0x0A`
+* `Imm16, RA` is encoded as `ImmLo ImmHi 0x0A`
 
 Examples:
 
