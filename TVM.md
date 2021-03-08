@@ -1,6 +1,6 @@
 # Why? 
 
-TVM is a purely emulated CPU architecture since I like assembly programming but hate reality.
+TVM (Tiny Virtual Machine) is a purely emulated CPU architecture because why not?
 
 # General Info
 
