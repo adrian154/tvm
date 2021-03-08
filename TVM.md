@@ -40,10 +40,10 @@ MOV RA, RB =
 0x01 0xAB
 
 MOV 0xFF, RA =
-0x01 0xFF 0xA0
+0x02 0xFF 0xA0
 
 MOV 0xBEEF, RA =
-0x01 0xEF 0xBE 0xA0
+0x03 0xEF 0xBE 0xA0
 
 ADD RA, RB =
 0x0E 0xAB
@@ -63,7 +63,7 @@ MUL RA, RB, RC, RD =
 |LOADB   |0x06  | Reg(Ptr) | Reg(Dst) |          |          | Sets the lower byte of register Dst to the byte in memory pointed to by register Ptr |
 |LOADW   |0x07  | Reg(Ptr) | Reg(Dst) |          |          | Sets register Dst to the word in memory pointed to by register Ptr |
 |NOT     |0x08  | Reg(Src) |          |          |          | Sets register Src to the bitwise NOT of register Src
-|AND     |0x089 | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise AND of register A and B |
+|AND     |0x09  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise AND of register A and B |
 |OR      |0x0A  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise OR of register A and B | 
 |XOR     |0x0B  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise XOR of reigster A and B |
 |SHL     |0x0C  | Reg(Src) | Reg(Bits)|          |          | Sets register Src to the value of register Val shifted left by (register Bits) bits |

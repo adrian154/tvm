@@ -89,28 +89,28 @@ const INSTRUCTIONS = {
         name: "NOT",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RB] = ~CPU.registers[RA];
+            CPU.registers[RB] = u16(~CPU.registers[RA]);
         }
     },
     0x09: {
         name: "AND",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RB] = CPU.registers[RA] & CPU.registers[RB]; 
+            CPU.registers[RB] = u16(CPU.registers[RA] & CPU.registers[RB]); 
         }
     },
     0x0A: {
         name: "OR",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RB] = CPU.registers[RA] | CPU.registers[RB];
+            CPU.registers[RB] = u16(CPU.registers[RA] | CPU.registers[RB]);
         }
     },
     0x0B: {
         name: "XOR",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RB] = CPU.registers[RA] ^ CPU.registers[RB];
+            CPU.registers[RB] = u16(CPU.registers[RA] ^ CPU.registers[RB]);
         }
     },
 
@@ -125,20 +125,20 @@ const INSTRUCTIONS = {
         name: "ASR",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RA] = CPU.registers[RA] >> CPU.registers[RB]; 
+            CPU.registers[RA] = u16(CPU.registers[RA] >> CPU.registers[RB]); 
         }
     },
     0x0E: {
         name: "SHR",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
-            CPU.registers[RA] = CPU.registers[RA] >>> CPU.registers[RB];
+            CPU.registers[RA] = u16(CPU.registers[RA] >>> CPU.registers[RB]);
         }
     },
     0x0F: {
         name: "ADD",
         operands: OPERAND_PATTERN.RRR,
-        handler: (CPU, RA, RB, RC) => {
+        handler: (CPU, RA, RB) => {
             const result = CPU.registers[RA] + CPU.registers[RB];
             CPU.registers[RB] = u16(result);
             CPU.carry = Boolean(result >> 16);
@@ -147,7 +147,7 @@ const INSTRUCTIONS = {
     0x10: {
         name: "ADDC",
         operands: OPERAND_PATTERN.RRR,
-        handler: (CPU, RA, RB, RC) => {
+        handler: (CPU, RA, RB) => {
             const result = CPU.registers[RA] + CPU.registers[RB] + CPU.carry;
             CPU.registers[RB] = u16(result);
             CPU.carry = Boolean(result >> 16);
@@ -156,7 +156,7 @@ const INSTRUCTIONS = {
     0x11: {
         name: "SUB",
         operands: OPERAND_PATTERN.RRR,
-        handler: (CPU, RA, RB, RC) => {
+        handler: (CPU, RA, RB) => {
             const result = CPU.registers[RA] - CPU.registers[RB];
             CPU.registers[RB] = u16(result);
             CPU.borrow = Boolean(result >> 16);
@@ -165,7 +165,7 @@ const INSTRUCTIONS = {
     0x12: {
         name: "SUBB",
         operands: OPERAND_PATTERN.RRR,
-        handler: (CPU, RA, RB, RC) => {
+        handler: (CPU, RA, RB) => {
             const result = CPU.registers[RA] - CPU.registers[RB] - CPU.carry;
             CPU.registers[RB] = u16(result);
             CPU.carry = Boolean(result >> 16);
@@ -378,7 +378,6 @@ const step = (CPU) => {
             str += " 0x" + operands[0].toString(16) + ", R" + operands[1].toString(16);
             break;
     }
-
 
     console.log(str);
 
