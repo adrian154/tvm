@@ -26,8 +26,8 @@ There a few patterns of instruction operands, with the following encodings:
 
 **Register operands**
 
+* `RA` is encoded as `0xA0`
 * `RA, RB` is encoded as `0xAB`
-* `RA, RB, RC` is encoded as `0xAB 0xC0`
 * `RA, RB, RC, RD` is encoded as `0xAB 0xCD`
 
 **Immediate operands**
@@ -47,8 +47,8 @@ MOV 0xFF, RA =
 MOV 0xBEEF, RA =
 0x01 0xEF 0xBE 0xA0
 
-ADD RA, RB, RC =
-0x0E 0xAB 0xC0
+ADD RA, RB =
+0x0E 0xAB
 
 MUL RA, RB, RC, RD =
 0x12 0xAB 0xCD
@@ -64,17 +64,17 @@ MUL RA, RB, RC, RD =
 |STOREW  |0x05  | Reg(Src) | Reg(Ptr) |          |          | Sets the word in memory pointed to by register Ptr to the value of register Src |
 |LOADB   |0x06  | Reg(Ptr) | Reg(Dst) |          |          | Sets the lower byte of register Dst to the byte in memory pointed to by register Ptr |
 |LOADW   |0x07  | Reg(Ptr) | Reg(Dst) |          |          | Sets register Dst to the word in memory pointed to by register Ptr |
-|NOT     |0x08  | Reg(Src) | Reg(DST) |          |          | Sets register Dst to the bitwise NOT of register Src
-|AND     |0x08  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise AND of register A and B |
-|OR      |0x09  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise OR of register A and B | 
-|XOR     |0x0A  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the bitwise XOR of reigster A and B |
-|ASL     |0x0B  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted left by (register Bits) bits |
-|ASR     |0x0C  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted right by (register Bits) bits, preserving the sign bit (MSB) |
-|LSR     |0x0D  | Reg(Val) | Reg(Bits)| Reg(Dst) |          | Sets register Dst to the value of register Val shifted right by (register Bits) bits, **not** preserving the sign bit |
-|ADD     |0x0E  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A plus register B. Updates the carry flag |
-|ADDC    |0x0F  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A plus register B, **taking into account the carry flag**. Updates the carry flag |
-|SUB     |0x10  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A minus register B. Updates the borrow flag |
-|SUBB    |0x11  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets register Dst to the value of register A minus register B, **taking into account the borrow flag**. Updates the borrow flag |
+|NOT     |0x08  | Reg(Src) |          |          |          | Sets register Src to the bitwise NOT of register Src
+|AND     |0x08  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise AND of register A and B |
+|OR      |0x09  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise OR of register A and B | 
+|XOR     |0x0A  | Reg(A)   | Reg(B)   |          |          | Sets register B to the bitwise XOR of reigster A and B |
+|ASL     |0x0B  | Reg(Src) | Reg(Bits)|          |          | Sets register Src to the value of register Val shifted left by (register Bits) bits |
+|ASR     |0x0C  | Reg(Src) | Reg(Bits)|          |          | Sets register Src to the value of register Val shifted right by (register Bits) bits, preserving the sign bit (MSB) |
+|LSR     |0x0D  | Reg(Src) | Reg(Bits)|          |          | Sets register Src to the value of register Val shifted right by (register Bits) bits, **not** preserving the sign bit |
+|ADD     |0x0E  | Reg(A)   | Reg(B)   |          |          | Sets register B to the value of register A plus register B. Updates the carry flag |
+|ADDC    |0x0F  | Reg(A)   | Reg(B)   |          |          | Sets register B to the value of register A plus register B, **taking into account the carry flag**. Updates the carry flag |
+|SUB     |0x10  | Reg(A)   | Reg(B)   |          |          | Sets register B to the value of register A minus register B. Updates the borrow flag |
+|SUBB    |0x11  | Reg(A)   | Reg(B)   |          |          | Sets register B to the value of register A minus register B, **taking into account the borrow flag**. Updates the borrow flag |
 |MUL     |0x12  | Reg(A)   | Reg(B)   |Reg(DstHi)|Reg(DstLo)| Sets \[DstHi, DstLo] to the value of register A times register B, treating the two registers as one 32-bit value |
 |MULT    |0x13  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets Dst to the value of register A times register B, truncating the upper 16 bits of the result |
 |DIV     |0x14  | Reg(A)   | Reg(B)   | Reg(Dst) |          | Sets Dst to the value of register A divided by register B |
@@ -93,4 +93,4 @@ MUL RA, RB, RC, RD =
 |PUSHW   |0x21  | Reg      |          |          |          | Sets the word in memory pointed to by RF to the register, and decrements RF |
 
 # TODO
-Support for signed operations, describe interrupts/devices
+Interrupts, devices, general IO crap...
