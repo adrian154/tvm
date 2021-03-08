@@ -27,7 +27,7 @@ const readWord = (CPU, offset) => {
 const u8 = value => value & 0xff;
 const u16 = value => value & 0xffff;
 
-// Sign EXtend
+// Sign EXtend (SEX)
 const signExt = value => (value >> 15 ? 0xffff : 0x0000) << 16 | value;
 
 const INSTRUCTIONS = {
@@ -259,6 +259,20 @@ const INSTRUCTIONS = {
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
             CPU.predicateCondition = signExt(CPU.registers[RA]) < signExt(CPU.registers[RB]);
+        }
+    },
+    0x25: {
+        name: "IFC",
+        operands: OPERAND_PATTERN.NONE,
+        handler: (CPU) => {
+            CPU.predicateCondition = CPU.carry;
+        }
+    },
+    0x26: {
+        name: "IFNC",
+        operands: OPERAND_PATTERN.NONE,
+        handler: (CPU) => {
+            CPU.predicateCondition = !CPU.carry;
         }
     },
     0x20: {
