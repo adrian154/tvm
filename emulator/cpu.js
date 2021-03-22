@@ -378,20 +378,11 @@ const step = (CPU) => {
             bytes = 0;
         break;
         case OPERAND_PATTERN.R:
-            operands = readRegisterOperands(CPU, 1);
-            bytes = 1;
-        break;
         case OPERAND_PATTERN.RR:
-            operands = readRegisterOperands(CPU, 2);
-            bytes = 1;
-        break;
         case OPERAND_PATTERN.RRR:
-            operands = readRegisterOperands(CPU, 3);
-            bytes = 2;
-        break;
         case OPERAND_PATTERN.RRRR:
-            operands = readRegisterOperands(CPU, 4);
-            bytes = 2;
+            operands = readRegisterOperands(CPU, insn.operands);
+            bytes = Math.ceil(insn.operands / 2)
         break;
         case OPERAND_PATTERN.Imm8R:
             operands = [
