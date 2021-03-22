@@ -2,7 +2,8 @@ const OPERAND_PATTERN = Object.freeze({
     NONE: 0,
     R: 1,
     RR: 2,
-    RRRR: 3,
+    RRR: 3,
+    RRRR: 4,
     Imm8R: 5,
     Imm16R: 6
 });
@@ -29,6 +30,10 @@ const u16 = value => value & 0xffff;
 
 // Sign extend 16-bit to 32-bit
 const signExt = value => (value >> 15 ? 0xffff : 0x0000) << 16 | value;
+
+// Special registers
+const SP = 0xE;
+const IP = 0xF;
 
 const INSTRUCTIONS = {
     0x00: {
@@ -180,7 +185,7 @@ const INSTRUCTIONS = {
             CPU.registers[RD] = result & 0xFFFF;     
         }
     },
-    0x27: {
+    0x14: {
         name: "IMUL",
         operands: OPERAND_PATTERN.RRRR,
         handler: (CPU, RA, RB, RC, RD) => {
@@ -197,7 +202,7 @@ const INSTRUCTIONS = {
             CPU.registers[RC] = CPU.registers[RA] % CPU.registers[RB];
         }
     },
-    0x28: {
+    0x16: {
         name: "IDIV",
         operands: OPERAND_PATTERN.RRR,
         handler: (CPU, RA, RB, RC) => {
@@ -207,21 +212,21 @@ const INSTRUCTIONS = {
             CPU.registers[RC] = A % B;
         }
     },
-    0x16: {
+    0x17: {
         name: "CC",
         operands: OPERAND_PATTERN.NONE,
         handler: (CPU) => {
             CPU.carry = false;
         }
     },
-    0x17: {
+    0x18: {
         name: "SC",
         operands: OPERAND_PATTERN.NONE,
         handler: (CPU) => {
             CPU.carry = true;
         }
     },
-    0x1A: {
+    0x19: {
         name: "IFZ",
         operands: OPERAND_PATTERN.R,
         handler: (CPU, R) => {
@@ -229,7 +234,7 @@ const INSTRUCTIONS = {
             CPU.predicateCondition = R == 0;
         }
     },
-    0x1B: {
+    0x1A: {
         name: "IF",
         operands: OPERAND_PATTERN.R,
         handler: (CPU, R) => {
@@ -237,7 +242,7 @@ const INSTRUCTIONS = {
             CPU.predicateCondition = R != 0;
         }
     },
-    0x1C: {
+    0x1B: {
         name: "IFEQ",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
@@ -245,7 +250,7 @@ const INSTRUCTIONS = {
             CPU.predicateCondition = CPU.registers[RA] == CPU.registers[RB];
         }
     },
-    0x1D: {
+    0x1C: {
         name: "IFNEQ",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
@@ -253,73 +258,89 @@ const INSTRUCTIONS = {
             CPU.predicateCondition = CPU.registers[RA] != CPU.registers[RB];
         }
     },
-    0x1E: {
+    0x1D: {
         name: "IFGU",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
             CPU.predicateCondition = u16(CPU.registers[RA]) > u16(CPU.registers[RB]);
         }
     },
-    0x1F: {
+    0x1E: {
         name: "IFLU",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
             CPU.predicateCondition = u16(CPU.registers[RA]) < u16(CPU.registers[RB]);
         }
     },
-    0x23: {
+    0x1F: {
         name: "IFGS",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
             CPU.predicateCondition = signExt(CPU.registers[RA]) > signExt(CPU.registers[RB]);
         }
     },
-    0x24: {
+    0x20: {
         name: "IFLS",
         operands: OPERAND_PATTERN.RR,
         handler: (CPU, RA, RB) => {
             CPU.predicateCondition = signExt(CPU.registers[RA]) < signExt(CPU.registers[RB]);
         }
     },
-    0x25: {
+    0x21: {
         name: "IFC",
         operands: OPERAND_PATTERN.NONE,
         handler: (CPU) => {
             CPU.predicateCondition = CPU.carry;
         }
     },
-    0x26: {
+    0x22: {
         name: "IFNC",
         operands: OPERAND_PATTERN.NONE,
         handler: (CPU) => {
             CPU.predicateCondition = !CPU.carry;
         }
     },
-    0x20: {
+    0x23: {
         name: "CALL",
         operands: OPERAND_PATTERN.R,
         handler: (CPU, R) => {
-            CPU.storeWord(CPU, CPU.registers[0xE], CPU.registers[0xF]);
-            CPU.registers[0xE] = u16(CPU.registers[0xE] - 2);
-            CPU.registers[0xF] = CPU.registers[R];
+            CPU.storeWord(CPU, CPU.registers[SP], CPU.registers[IP]);
+            CPU.registers[SP] = u16(CPU.registers[SP] - 2);
+            CPU.registers[IP] = CPU.registers[R];
         }
     },
-    0x21: {
+    0x24: {
         name: "PUSHB",
         operands: OPERAND_PATTERN.R,
         handler: (CPU, R) => {
-            CPU.memory[CPU.registers[0xE]] = u8(CPU.registers[R]);
-            CPU.registers[0xE] = u16(CPU.registers[0xE] - 1);
+            CPU.memory[CPU.registers[SP]] = u8(CPU.registers[R]);
+            CPU.registers[SP] = u16(CPU.registers[SP] - 1);
         }
     },
-    0x22: {
+    0x25: {
         name: "PUSHW",
         operands: OPERAND_PATTERN.R,
         handler: (CPU, R) => {
-            CPU.storeWord(CPU, CPU.registers[0xE], CPU.registers[R]);
-            CPU.registers[0xE] = u16(CPU.registers[0xE] - 2);
+            CPU.storeWord(CPU, CPU.registers[SP], CPU.registers[R]);
+            CPU.registers[SP] = u16(CPU.registers[SP] - 2);
         }
-    }
+    },
+    0x26: {
+        name: "POPB",
+        operands: OPERAND_PATTERN.R,
+        handler: (CPU, R) => {
+            CPU.registers[R] = CPU.memory[CPU.registers[SP]];
+            CPU.registers[SP] = u16(CPU.registers[SP] + 1);
+        }
+    },
+    0x27: {
+        name: "POPW",
+        operands: OPERAND_PATTERN.R,
+        handler: (CPU, R) => {
+            CPU.registers[R] = readWord(CPU, CPU.registers[SP]);
+            CPU.registers[SP] = u16(CPU.registers[SP] + 2); 
+        }
+    },
 };
 
 const readRegisterOperands = (CPU, count) => {
@@ -327,10 +348,10 @@ const readRegisterOperands = (CPU, count) => {
     let offset = 1;
     for(let i = 0; i < count; i++) {
         if(i % 2) {
-            list.push(CPU.memory[CPU.registers[0xF] + offset] & 0x0F);
+            list.push(CPU.memory[CPU.registers[IP] + offset] & 0x0F);
             offset++;
         } else {
-            list.push((CPU.memory[CPU.registers[0xF] + offset] & 0xF0) >> 4);
+            list.push((CPU.memory[CPU.registers[IP] + offset] & 0xF0) >> 4);
         }
     }
     return list;
@@ -342,7 +363,7 @@ const step = (CPU) => {
     if(CPU.applyPredicate) CPU.applyPredicate = false;
 
     // decode instruction
-    const insnPtr = CPU.registers[0xF];
+    const insnPtr = CPU.registers[IP];
     const opcode = CPU.memory[insnPtr];
     const insn = INSTRUCTIONS[opcode];
 
@@ -363,6 +384,10 @@ const step = (CPU) => {
         case OPERAND_PATTERN.RR:
             operands = readRegisterOperands(CPU, 2);
             bytes = 1;
+        break;
+        case OPERAND_PATTERN.RRR:
+            operands = readRegisterOperands(CPU, 3);
+            bytes = 2;
         break;
         case OPERAND_PATTERN.RRRR:
             operands = readRegisterOperands(CPU, 4);
@@ -390,6 +415,7 @@ const step = (CPU) => {
     switch(insn.operands) {
         case OPERAND_PATTERN.R:
         case OPERAND_PATTERN.RR:
+        case OPERAND_PATTERN.RRR:
         case OPERAND_PATTERN.RRRR:
             str += operands.map(reg => "R" + reg.toString(16)).join(", ");
             break;
@@ -402,7 +428,7 @@ const step = (CPU) => {
     console.log(str);
 
     // advance instruction pointer
-    CPU.registers[0xF] += bytes + 1;
+    CPU.registers[IP] += bytes + 1;
 
     if(CPU.applyPredicate ? CPU.predicateCondition : true) {
         insn.handler(CPU, ...operands);
