@@ -27,7 +27,7 @@ const readWord = (CPU, offset) => {
 const u8 = value => value & 0xff;
 const u16 = value => value & 0xffff;
 
-// Sign EXtend (SEX)
+// Sign extend 16-bit to 32-bit
 const signExt = value => (value >> 15 ? 0xffff : 0x0000) << 16 | value;
 
 const INSTRUCTIONS = {
@@ -180,11 +180,31 @@ const INSTRUCTIONS = {
             CPU.registers[RD] = result & 0xFFFF;     
         }
     },
+    0x27: {
+        name: "IMUL",
+        operands: OPERAND_PATTERN.RRRR,
+        handler: (CPU, RA, RB, RC, RD) => {
+            const result = signExt(CPU.registers[RA]) * signExt(CPU.registers[RB]);
+            CPU.registers[RC] = (result >> 16) & 0xffff;
+            CPU.registers[RD] = result & 0xFFFF;
+        }
+    },
     0x15: {
         name: "DIV",
         operands: OPERAND_PATTERN.RRR,
-        handler: (CPU, RA, RB) => {
-            CPU.registers[RB] = Math.trunc(RA / RB);
+        handler: (CPU, RA, RB, RC) => {
+            CPU.registers[RB] = Math.trunc(CPU.registers[RA] / CPU.registers[RB]);
+            CPU.registers[RC] = CPU.registers[RA] % CPU.registers[RB];
+        }
+    },
+    0x28: {
+        name: "IDIV",
+        operands: OPERAND_PATTERN.RRR,
+        handler: (CPU, RA, RB, RC) => {
+            const A = signExt(CPU.registers[RA]);
+            const B = signExt(CPU.registers[RB]);
+            CPU.registers[RB] = Math.trunc(A / B);
+            CPU.registers[RC] = A % B;
         }
     },
     0x16: {
