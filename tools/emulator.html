@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TVM</title>
+        <link rel="stylesheet" href="emulator.css">
+    </head>
+    <body>
+        <div style="display: flex; flex-direction: column; height: 100%;">
+            <div id="ribbon">
+                <p>TVM Toolkit</p>
+            </div>
+            <div id="pane-container">
+                <div id="editor-pane" class="pane">
+                    <textarea id="editor" spellcheck="false">
+fibonacci:
+    movb r0, 1
+    movb r1, 1
+loop:
+    add r0, r1, r2
+    mov r1, r0
+    mov r2, r1
+    tmpprint r0
+    movw rf, loop
+                    </textarea>
+                </div>
+                <div id="left-panes">
+                    <div id="top-pane" class="pane">
+                        <pre id="output"></pre>
+                    </div>
+                    <div id="bottom-pane" class="pane">
+                        <p id="status"></p>
+                        <table id="registers">
+                            <tr>
+                                <th>Register</th>
+                                <th>Value</th>
+                                <th>Register</th>
+                                <th>Value</th>
+                            </tr>
+                        </table>
+                        <button onclick="reassemble()">Assemble and Write</button>
+                        <button onclick="reset()">Reset</button>
+                        <button onclick="toggle()">Pause/go</button>
+                        <button onclick="singlestep()">Step</button>
+                    </div>
+                </div>        
+            </div>
+        </div>
+        <!-- Scripts -->
+        <script src="core/cpu.js"></script>
+        <script src="core/assembler.js"></script>
+        <script src="emulator.js"></script>
+    </body>
+</html>

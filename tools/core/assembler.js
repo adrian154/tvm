@@ -33,6 +33,16 @@ const tokenize = (text) => {
     let pos = 0;
     let stay = false;
     let tokens = [];
+    let line = 1;
+
+    const testWhitespace = (char) => {
+        if(WHITESPACE.test(char)) {
+            if(char === "\n") line++; 
+            return true;
+        } else {
+            return false;
+        }
+    };
 
     while(pos < text.length) {
 
@@ -44,8 +54,8 @@ const tokenize = (text) => {
                     state = State.FindVerbEnd;
                     curToken = "";
                     stay = true;
-                } else if(!WHITESPACE.test(char)) {
-                    throw new Error(`Illegal character in verb: "${char}"`);
+                } else if(!testWhitespace(char)) {
+                    throw new Error(`Illegal character in verb: "${char}" (line ${line})`);
                 }
                 break;
             }
@@ -55,18 +65,18 @@ const tokenize = (text) => {
                 } else if(char === ":") {
                     tokens.push({type: Token.LabelDeclaration, name: curToken});
                     state = State.FindVerbStart;
-                } else if(char === "." || WHITESPACE.test(char)) {
+                } else if(char === "." || testWhitespace(char)) {
                     tokens.push({type: Token.Instruction, name: curToken});
                     if(char !== ".") {
                         state = State.FindOperandStart;
                     }
                 } else {
-                    throw new Error(`Illegal character in verb: "${char}"`);
+                    throw new Error(`Illegal character in verb: "${char}" (line ${line})`);
                 }
                 break;
             }
             case State.FindOperandStart: {
-                if(!WHITESPACE.test(char)) {
+                if(!testWhitespace(char)) {
                     state = State.FindOperandEnd;
                     curToken = "";
                     stay = true;
@@ -74,7 +84,7 @@ const tokenize = (text) => {
                 break;
             }
             case State.FindOperandEnd: {
-                if(char === "," || WHITESPACE.test(char)) {
+                if(char === "," || testWhitespace(char)) {
 
                     // parse operand
                     let match;
@@ -89,7 +99,7 @@ const tokenize = (text) => {
                     } else if(LABEL.test(curToken)) {
                         tokens.push({type: Token.Label, name: curToken});
                     } else {
-                        throw new Error(`Illegal operand "${curToken}"`);
+                        throw new Error(`Illegal operand "${curToken}" (line ${line})`);
                     }
 
                     if(char === ",") {

@@ -161,7 +161,7 @@ const Instructions = {
         handler: (CPU, RA, RB, RC) => {
             const result = CPU.registers[RA] - CPU.registers[RB];
             CPU.registers[RC] = u16(result);
-            CPU.borrow = Boolean(result >> 16);
+            CPU.carry = Boolean(result >> 16);
         }
     },
     0x12: {
@@ -339,10 +339,12 @@ const Instructions = {
         }
     },
     0xF0: {
-        name: "DEBUGPRINT",
+        name: "TMPPRINT",
         operands: OperandPattern.R,
         handler: (CPU, R) => {
-            console.log(`R${R}: 0x${CPU.registers[R].toString(16)}`);
+            if(CPU.onPrint) {
+                CPU.onPrint(CPU.registers[R]);
+            }
         }
     }
 };
@@ -362,9 +364,6 @@ const readRegisterOperands = (CPU, count) => {
 };
 
 const step = (CPU) => {
-
-    // reset predicate after an iteration
-    if(CPU.applyPredicate) CPU.applyPredicate = false;
 
     // decode instruction
     const insnPtr = CPU.registers[IP];
@@ -405,11 +404,17 @@ const step = (CPU) => {
         break;
     }
     
+    // debug purposes
+    //console.log(insn.name, operands, CPU.applyPredicate, CPU.predicateCondition);
+
     // advance instruction pointer
     CPU.registers[IP] += bytes + 1;
 
-    if(CPU.applyPredicate ? CPU.predicateCondition : true) {
-        insn.handler(CPU, ...operands);
+    if(CPU.applyPredicate) {
+        CPU.applyPredicate = false;
+        if(!CPU.predicateCondition) return;
     }
+
+    insn.handler(CPU, ...operands);
 
 };
