@@ -296,8 +296,8 @@ const Instructions = {
         name: "CALL",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.storeWord(CPU, CPU.registers[SP], CPU.registers[IP]);
             CPU.registers[SP] = u16(CPU.registers[SP] - 2);
+            storeWord(CPU, CPU.registers[SP], CPU.registers[IP]);
             CPU.registers[IP] = Src;
         }
     },
@@ -305,16 +305,16 @@ const Instructions = {
         name: "PUSHB",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.memory[CPU.registers[SP]] = u8(Src);
             CPU.registers[SP] = u16(CPU.registers[SP] - 1);
+            CPU.memory[CPU.registers[SP]] = u8(Src);
         }
     },
     0x25: {
         name: "PUSHW",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.storeWord(CPU, CPU.registers[SP], Src);
             CPU.registers[SP] = u16(CPU.registers[SP] - 2);
+            storeWord(CPU, CPU.registers[SP], Src);
         }
     },
     0x26: {
@@ -392,7 +392,7 @@ const step = (CPU) => {
             operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU)];
         break;
         case OperandPattern.SrcSrcRR:
-            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU)];
+            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU), readRegister(CPU)];
         break;
     }
     
@@ -401,7 +401,7 @@ const step = (CPU) => {
         if(!CPU.predicateCondition) return;
     }
 
-    console.log(CPU.registers[IP], insn.name, operands, src0Type, src1Type, cpu.applyPredicate, cpu.predicateCondition);
+    //console.log(CPU.registers[IP], insn.name, operands, src0Type, src1Type, cpu.applyPredicate, cpu.predicateCondition);
 
     insn.handler(CPU, ...operands);
 

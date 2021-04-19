@@ -32,6 +32,8 @@ body, html {
     flex: 50%;
     background: #000000;
     padding: 1.0em;
+    overflow: auto;
+    flex-grow: 1;
 }
 
 #top-pane pre {

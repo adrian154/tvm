@@ -62,13 +62,21 @@ const updateDisplays = () => {
     }
 };
 
+const singlestep = () => {
+    try {
+        step(cpu);
+    } catch(error) {
+        alert("Runtime error: " + error.message);
+        console.error(error);
+        running = false;
+    }
+    updateDisplays();
+};
+
 const run = () => {
     if(running) {
-        try {
-            step(cpu);
-        } catch(error) {
-            alert("Runtime error: " + error.message);
-            running = false;
+        for(let i = 0; i < 30; i++) {
+            singlestep();
         }
         updateDisplays();
     }
@@ -109,10 +117,5 @@ const reassemble = () => {
 
 const toggle = () => {
     running = !running;
-    updateDisplays();
-};
-
-const singlestep = () => {
-    step(cpu);
     updateDisplays();
 };

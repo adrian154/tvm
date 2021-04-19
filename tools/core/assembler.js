@@ -70,7 +70,9 @@ const tokenize = (text) => {
                     state = State.FindVerbStart;
                 } else if(char === "." || testWhitespace(char)) {
                     tokens.push({type: Token.Instruction, name: curToken, line: line});
-                    if(char !== ".") {
+                    if(char == ".") {
+                        state = State.FindVerbStart;
+                    }else {
                         state = State.FindOperandStart;
                     }
                 } else {
@@ -133,6 +135,7 @@ const tokenize = (text) => {
     }
 
     if(state != State.FindVerbStart) {
+        console.error(state);
         throw new Error("Reached unexpected end of input");
     }
 
@@ -202,7 +205,7 @@ const parse = (tokens) => {
                     operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift()), checkType(tokens.shift(), Token.Register)];
                 break;
                 case OperandPattern.SrcSrcRR:
-                    operands = [checkIsSource(tokens.shift), checkIsSource(tokens.shift), checkType(tokens.shift(), Token.Register), checkType(tokens.shift(), Token.Register)];
+                    operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift()), checkType(tokens.shift(), Token.Register), checkType(tokens.shift(), Token.Register)];
                 break;
             }
 
@@ -221,23 +224,19 @@ const parse = (tokens) => {
 const encode = (instruction) => {
     let srcMask = 0;
     if(instruction.pattern >= OperandPattern.Src) {
-        if(instruction.pattern > OperandPattern.SrcSrc) {
-            srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1 | (instruction.operands[1].value ? SRC_TYPE_IMM : SRC_TYPE_REG)
-        } else {
-            srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1;
+        srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1;
+        if(instruction.pattern >= OperandPattern.SrcSrc) {
+            srcMask |= (instruction.operands[1].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG);
         }
     }
     const buffer = [instruction.opcode | (srcMask << 6)];
     for(const operand of instruction.operands) {
         if(operand.type == Token.Register) {
-            console.log("register " + operand.register);
             buffer.push(operand.register);
         } else if(operand.hasOwnProperty("value")) {
-            console.log("imm " + operand.value)
             buffer.push(operand.value & 0xFF, (operand.value & 0xFF00) >> 8);
         }
     }
-    console.log(instruction.opcode, buffer);
     return buffer;
 };
 
