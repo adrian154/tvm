@@ -55,7 +55,7 @@ const run = () => {
         step(cpu);
         updateDisplays();
     }
-    requestAnimationFrame(run);
+    setTimeout(run, 10);
 };
 
 const reset = (soft) => {

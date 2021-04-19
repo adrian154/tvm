@@ -63,10 +63,10 @@ const tokenize = (text) => {
                 if(NAME_CHAR.test(char)) {
                     curToken += char;
                 } else if(char === ":") {
-                    tokens.push({type: Token.LabelDeclaration, name: curToken});
+                    tokens.push({type: Token.LabelDeclaration, name: curToken, line: line});
                     state = State.FindVerbStart;
                 } else if(char === "." || testWhitespace(char)) {
-                    tokens.push({type: Token.Instruction, name: curToken});
+                    tokens.push({type: Token.Instruction, name: curToken, line: line});
                     if(char !== ".") {
                         state = State.FindOperandStart;
                     }
@@ -89,15 +89,15 @@ const tokenize = (text) => {
                     // parse operand
                     let match;
                     if((match = curToken.match(REGISTER))) {
-                        tokens.push({type: Token.Register, register: parseInt(match[1], 16)});
+                        tokens.push({type: Token.Register, register: parseInt(match[1], 16), line: line});
                     } else if((match = curToken.match(HEX_LITERAL))) {
-                        tokens.push({type: Token.Number, value: parseInt(match[1], 16)});
+                        tokens.push({type: Token.Number, value: parseInt(match[1], 16), line: line});
                     } else if((match = curToken.match(BINARY_LITERAL))) {
-                        tokens.push({type: Token.Number, value: parseInt(match[1], 2)});
+                        tokens.push({type: Token.Number, value: parseInt(match[1], 2), line: line});
                     } else if(DECIMAL_LITERAL.test(curToken)) {
-                        tokens.push({type: Token.Number, value: parseInt(curToken)});
+                        tokens.push({type: Token.Number, value: parseInt(curToken), line: line});
                     } else if(LABEL.test(curToken)) {
-                        tokens.push({type: Token.Label, name: curToken});
+                        tokens.push({type: Token.Label, name: curToken, line: line});
                     } else {
                         throw new Error(`Illegal operand "${curToken}" (line ${line})`);
                     }
@@ -135,7 +135,7 @@ const createOpcodeDictionary = () => {
     const dictionary = {};
     for(const opcode in Instructions) {
         const instruction = Instructions[opcode];
-        instruction.opcode = Number(opcode); // thanks pankek 
+        instruction.opcode = Number(opcode); // necessary cast, thanks @pancake
         dictionary[instruction.name.toLowerCase()] = instruction;
         dictionary[instruction.name.toUpperCase()] = instruction; 
     }
@@ -143,6 +143,20 @@ const createOpcodeDictionary = () => {
 };
 
 const opcodeDictionary = createOpcodeDictionary();
+
+const checkType = (token, type) => {
+    if(!token || token.type !== type) {
+        throw new Error(`Expected ${type} but got ${operands[0]?.type ?? "end of input"} (line ${token.line})`);
+    }
+    return token;
+};
+
+const checkIsSource = (token) => {
+    if(token.type !== Token.Number && token.type !== Token.Register && token.type !== Token.Label) {
+        throw new Error(`Expected source but got ${operands[0]?.type ?? "end of input"} (line ${token.line})`);
+    }
+    return token;
+};
 
 const parse = (tokens) => {
 
@@ -154,33 +168,39 @@ const parse = (tokens) => {
         if(token.type === Token.LabelDeclaration) {
             instructions.push({labelDeclaration: true, name: token.name});
         } else if(token.type === Token.Instruction) {
+            
             const instruction = opcodeDictionary[token.name];
             if(!instruction) {
-                throw new Error(`Unknown instruction "${token.name}"`);
+                throw new Error(`Unknown instruction "${token.name}" (line ${token.line})`);
             }
-            const operands = [];
-            if(instruction.operands <= OperandPattern.RRRR) {
-                for(let i = 0; i < instruction.operands; i++) {
-                    const operand = tokens.shift();
-                    if(!operand || operand.type !== Token.Register) {
-                        throw new Error(`Unexpected ${token?.type ?? "end of input"} while parsing, anticipated a register`);
-                    }
-                    operands.push(operand);
-                }
-            } else if(instruction.operands == OperandPattern.Imm8R || instruction.operands == OperandPattern.Imm16R) {
-                const registerOp = tokens.shift();
-                const immOp = tokens.shift();
-                if(!registerOp || !immOp) {
-                    throw new Error(`Unexpected end of input while parsing, anticipated a register`)
-                }
-                if(registerOp.type !== Token.Register || (immOp.type !== Token.Number && immOp.type !== Token.Label)) {
-                    throw new Error(`Operand type mismatch, expected a register then an immediate value but got a ${registerOp.type} then a ${immOp.type}`)
-                }
-                operands.push(registerOp, immOp);
+            
+            let operands;
+            switch(instruction.operands) {
+                case OperandPattern.NONE: break;
+                case OperandPattern.R:
+                    operands = [checkType(token.shift(), Token.Register)];
+                break;
+                case OperandPattern.Src:
+                    operands = [checkIsSource(token.shift())];
+                break;
+                case OperandPattern.SrcR:
+                    operands = [checkIsSource(token.shift()), checkType(token.shift(), Token.Register)]; 
+                break;
+                case OperandPattern.SrcSrc:
+                    operands = [checkIsSource(token.shift()), checkIsSource(token.shift())];
+                break;
+                case OperandPattern.SrcSrcR:
+                    operands = [checkIsSource(token.shift()), checkIsSource(token.shift()), checkType(token.shift(), Token.Register)];
+                break;
+                case OperandPattern.SrcSrcRR:
+                    operands = [checkIsSource(token.shift), checkIsSource(token.shift), checkType(token.shift(), Token.Register), checkType(token.shift(), Token.Register)];
+                break;
             }
+
             instructions.push({opcode: instruction.opcode, pattern: instruction.operands, operands: operands});
+
         } else {
-            throw new Error(`Unexpected ${token.type} while parsing, anticipated a label declaration or instruction`);
+            throw new Error(`Unexpected ${token.type} while parsing, anticipated a label declaration or instruction (line ${token.line})`);
         }
 
     }
@@ -189,27 +209,22 @@ const parse = (tokens) => {
 
 };
 
-const InstructionLengths = Object.freeze({
-    [OperandPattern.R]: 2,
-    [OperandPattern.RR]: 2,
-    [OperandPattern.RRR]: 3,
-    [OperandPattern.RRRR]: 4,
-    [OperandPattern.Imm8R]: 3,
-    [OperandPattern.Imm16R]: 4
-});
-
 const encode = (instruction) => {
-    const buffer = [instruction.opcode];
-    if(instruction.pattern <= OperandPattern.RRRR) {
-        for(let i = 0; i < instruction.operands.length; i++) {
-            const idx = Math.trunc(i / 2 + 1);
-            if(i % 2 == 0) buffer[Math.trunc(idx)] = instruction.operands[i].register << 4;
-            else buffer[Math.trunc(idx)] |= instruction.operands[i].register;
+    let srcMask = 0;
+    if(instruction.pattern >= OperandPattern.Src) {
+        if(instruction.pattern > OperandPattern.SrcSrc) {
+            srcMask = (instruction.operands[1].value ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1 | (instruction.operands[0].value ? SRC_TYPE_IMM : SRC_TYPE_REG)
+        } else {
+            srcMask = instruction.operands[0].value ? SRC_TYPE_IMM : SRC_TYPE_REG;
         }
-    } else if(instruction.pattern == OperandPattern.Imm8R) {
-        buffer.push(instruction.operands[1].value, instruction.operands[0].register);
-    } else if(instruction.pattern == OperandPattern.Imm16R) {
-        buffer.push(instruction.operands[1].value & 0xff, (instruction.operands[1].value & 0xff00) >> 8, instruction.operands[0].register);
+    }
+    const buffer = [instruction.opcode | (srcMask << 6)];
+    for(const operand of instruction.operands) {
+        if(operand.type == Token.Register) {
+            buffer.push(operand.register)
+        } else if(operand.value) {
+            buffer.push(operand.value & 0xFF, (operand.value & 0xFF00) >> 8);
+        }
     }
     return buffer;
 };
@@ -226,7 +241,11 @@ const assemble = (text) => {
             if(labels[instruction.name]) throw new Error(`Duplicate label name ${instruction.name}`);
             labels[instruction.name] = offset;
         } else {
-            offset += InstructionLengths[instruction.pattern];
+            let instructionLength = 1;
+            for(const operand of instruction.operands) {
+                instructionLength += operand.type == Token.Register ? 1 : 2;
+            }
+            offset += instructionLength;
         }
     }
 
@@ -247,6 +266,6 @@ const assemble = (text) => {
         }
     }
 
-    return buffer;
+    return {code: buffer, symbols: labels};
 
 };
