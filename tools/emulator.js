@@ -75,10 +75,9 @@ const singlestep = () => {
 
 const run = () => {
     if(running) {
-        for(let i = 0; i < 30; i++) {
+        for(let i = 0; i < 200; i++) {
             singlestep();
         }
-        updateDisplays();
     }
     setTimeout(run, 10);
 };
