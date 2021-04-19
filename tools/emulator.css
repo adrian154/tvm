@@ -63,6 +63,7 @@ body, html {
     padding: 1.0em;
     font-size: 11pt;
     box-sizing: border-box;
+    tab-size: 4;
 }
 
 button {

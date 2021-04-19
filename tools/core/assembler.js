@@ -23,7 +23,8 @@ const State = Object.freeze({
     FindVerbStart: 0,
     FindVerbEnd: 1,
     FindOperandStart: 2,
-    FindOperandEnd: 3
+    FindOperandEnd: 3,
+    FindCommentEnd: 4
 });
 
 const tokenize = (text) => {
@@ -54,6 +55,8 @@ const tokenize = (text) => {
                     state = State.FindVerbEnd;
                     curToken = "";
                     stay = true;
+                } else if(char === ";") {
+                    state = State.FindCommentEnd;
                 } else if(!testWhitespace(char)) {
                     throw new Error(`Illegal character in verb: "${char}" (line ${line})`);
                 }
@@ -113,6 +116,12 @@ const tokenize = (text) => {
                 }
                 break;
             }
+            case State.FindCommentEnd: {
+                if(char === "\n") {
+                    state = State.FindVerbStart; 
+                }
+                break;
+            }
         }
 
         if(stay) {
@@ -146,14 +155,14 @@ const opcodeDictionary = createOpcodeDictionary();
 
 const checkType = (token, type) => {
     if(!token || token.type !== type) {
-        throw new Error(`Expected ${type} but got ${operands[0]?.type ?? "end of input"} (line ${token.line})`);
+        throw new Error(`Expected ${type} but got ${token?.type ?? "end of input"} (line ${token.line})`);
     }
     return token;
 };
 
 const checkIsSource = (token) => {
     if(token.type !== Token.Number && token.type !== Token.Register && token.type !== Token.Label) {
-        throw new Error(`Expected source but got ${operands[0]?.type ?? "end of input"} (line ${token.line})`);
+        throw new Error(`Expected source but got ${token?.type ?? "end of input"} (line ${token.line})`);
     }
     return token;
 };
@@ -178,22 +187,22 @@ const parse = (tokens) => {
             switch(instruction.operands) {
                 case OperandPattern.NONE: break;
                 case OperandPattern.R:
-                    operands = [checkType(token.shift(), Token.Register)];
+                    operands = [checkType(tokens.shift(), Token.Register)];
                 break;
                 case OperandPattern.Src:
-                    operands = [checkIsSource(token.shift())];
+                    operands = [checkIsSource(tokens.shift())];
                 break;
                 case OperandPattern.SrcR:
-                    operands = [checkIsSource(token.shift()), checkType(token.shift(), Token.Register)]; 
+                    operands = [checkIsSource(tokens.shift()), checkType(tokens.shift(), Token.Register)]; 
                 break;
                 case OperandPattern.SrcSrc:
-                    operands = [checkIsSource(token.shift()), checkIsSource(token.shift())];
+                    operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift())];
                 break;
                 case OperandPattern.SrcSrcR:
-                    operands = [checkIsSource(token.shift()), checkIsSource(token.shift()), checkType(token.shift(), Token.Register)];
+                    operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift()), checkType(tokens.shift(), Token.Register)];
                 break;
                 case OperandPattern.SrcSrcRR:
-                    operands = [checkIsSource(token.shift), checkIsSource(token.shift), checkType(token.shift(), Token.Register), checkType(token.shift(), Token.Register)];
+                    operands = [checkIsSource(tokens.shift), checkIsSource(tokens.shift), checkType(tokens.shift(), Token.Register), checkType(tokens.shift(), Token.Register)];
                 break;
             }
 
@@ -213,19 +222,22 @@ const encode = (instruction) => {
     let srcMask = 0;
     if(instruction.pattern >= OperandPattern.Src) {
         if(instruction.pattern > OperandPattern.SrcSrc) {
-            srcMask = (instruction.operands[1].value ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1 | (instruction.operands[0].value ? SRC_TYPE_IMM : SRC_TYPE_REG)
+            srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1 | (instruction.operands[1].value ? SRC_TYPE_IMM : SRC_TYPE_REG)
         } else {
-            srcMask = instruction.operands[0].value ? SRC_TYPE_IMM : SRC_TYPE_REG;
+            srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1;
         }
     }
     const buffer = [instruction.opcode | (srcMask << 6)];
     for(const operand of instruction.operands) {
         if(operand.type == Token.Register) {
-            buffer.push(operand.register)
-        } else if(operand.value) {
+            console.log("register " + operand.register);
+            buffer.push(operand.register);
+        } else if(operand.hasOwnProperty("value")) {
+            console.log("imm " + operand.value)
             buffer.push(operand.value & 0xFF, (operand.value & 0xFF00) >> 8);
         }
     }
+    console.log(instruction.opcode, buffer);
     return buffer;
 };
 

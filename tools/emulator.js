@@ -2,6 +2,18 @@ const bottomPane = document.getElementById("bottom-pane");
 const table = document.getElementById("registers");
 const statusMsg = document.getElementById("status");
 const outputBox = document.getElementById("output");
+const editor = document.getElementById("editor");
+
+editor.addEventListener("keydown", (event) => {
+    if(event.key === "Tab") {
+        event.preventDefault();
+        const start = event.target.selectionStart, end = event.target.selectionEnd;
+        event.target.value = event.target.value.substring(0, start) + "\t" + event.target.value.substring(end);
+        event.target.selectionStart = event.target.selectionEnd = start + 1;
+        //this.selectionStart = this.selectionEnd = this.selectionStart + 1;
+
+    }
+});
 
 // helper for testing: write crap to memory
 const write = (CPU, data, offset) => {
@@ -52,7 +64,12 @@ const updateDisplays = () => {
 
 const run = () => {
     if(running) {
-        step(cpu);
+        try {
+            step(cpu);
+        } catch(error) {
+            alert("Runtime error: " + error.message);
+            running = false;
+        }
         updateDisplays();
     }
     setTimeout(run, 10);
@@ -80,10 +97,12 @@ run();
 
 const reassemble = () => {
     try {
-        const code = assemble(document.getElementById("editor").value);
-        write(cpu, code);
+        const assembled = assemble(editor.value);
+        write(cpu, assembled.code);
+        console.log(assembled.symbols);
         reset(true);
     } catch(error) {
+        console.error(error);
         alert(error.message);
     }
 };

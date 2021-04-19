@@ -346,12 +346,11 @@ const Instructions = {
 
 const readSrc = (CPU, type) => {
     if(type == SRC_TYPE_IMM) {
-        const value = readWord(CPU, 2);
+        const value = readWord(CPU, CPU.registers[IP]);
         CPU.registers[IP] += 2;
         return value;
     } else {
-        const value = CPU.registers[CPU.memory[CPU.registers[IP]]] & 0x0F;
-        CPU.registers[IP]++;
+        const value = CPU.registers[CPU.memory[CPU.registers[IP]++] & 0x0F];
         return value;
     }
 };
@@ -361,18 +360,15 @@ const readRegister = (CPU) => CPU.memory[CPU.registers[IP]++] & 0x0F;
 const step = (CPU) => {
 
     // decode instruction
-    const insnPtr = CPU.registers[IP];
-    const opcodeFull = CPU.memory[insnPtr];
+    const opcodeFull = CPU.memory[CPU.registers[IP]++];
     const opcode = opcodeFull & 0b111111; // take off top two bits which are used for src/dest
-    const src0Type = opcode & 0b10000000;
-    const src1Type = opcode & 0b01000000;
+    const src0Type = (opcodeFull & 0b10000000) >> 7;
+    const src1Type = (opcodeFull & 0b01000000) >> 6;
     const insn = Instructions[opcode];
 
     if(!insn) {
-        throw new Error(`Unknown opcode 0x${opcode.toString(16)}`);
+        throw new Error(`Assembly error: Unknown opcode 0x${opcode.toString(16)}`);
     }
-
-    CPU.registers[IP]++;
 
     // read operands
     let operands;
@@ -399,11 +395,13 @@ const step = (CPU) => {
             operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU)];
         break;
     }
-
+    
     if(CPU.applyPredicate) {
         CPU.applyPredicate = false;
         if(!CPU.predicateCondition) return;
     }
+
+    console.log(CPU.registers[IP], insn.name, operands, src0Type, src1Type, cpu.applyPredicate, cpu.predicateCondition);
 
     insn.handler(CPU, ...operands);
 
