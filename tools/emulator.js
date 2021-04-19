@@ -112,6 +112,7 @@ const reassemble = () => {
         console.error(error);
         alert(error.message);
     }
+    alert("Successfully assembled!");
 };
 
 const toggle = () => {

@@ -78,6 +78,10 @@ button {
     margin: 1.0em 0;
 }
 
+button:hover {
+    color: #cccccc;
+}
+
 table, th, td {
     border-collapse: collapse;
     border: 1px solid #444444;
@@ -85,4 +89,8 @@ table, th, td {
 
 th, td {
     padding: 0.5em;
+}
+
+.green {
+    background-color: #59cf57;
 }

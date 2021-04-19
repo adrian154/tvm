@@ -15,7 +15,7 @@ const createCPU = () => ({
     applyPredicate: false,
     predicateCondition: true,
     memory: new Uint8Array(65536),
-    registers: new Array(16).fill(0),
+    registers: new Uint16Array(16).fill(0),
     flag: false
 });
 
@@ -81,49 +81,49 @@ const Instructions = {
         name: "NOT",
         operands: OperandPattern.R,
         handler: (CPU, RA) => {
-            CPU.registers[RA] = u16(~CPU.registers[RA]);
+            CPU.registers[RA] = ~CPU.registers[RA];
         }
     },
     0x09: {
         name: "AND",
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA & SrcB); 
+            CPU.registers[R] = SrcA & SrcB; 
         }
     },
     0x0A: {
         name: "OR",
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA | SrcB);
+            CPU.registers[R] = SrcA | SrcB;
         }
     },
     0x0B: {
         name: "XOR",
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA ^ SrcB);
+            CPU.registers[R] = SrcA ^ SrcB;
         }
     },
     0x0C: {
         name: "SHL",
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA << SrcB);
+            CPU.registers[R] = SrcA << SrcB;
         }
     },
     0x0D: {
         name: "ASR",
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA >> SrcB); 
+            CPU.registers[R] = SrcA >> SrcB; 
         }
     },
     0x0E: {
         name: "SHR",
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
-            CPU.registers[R] = u16(SrcA >>> SrcB);
+            CPU.registers[R] = SrcA >>> SrcB;
         }
     },
     0x0F: {
@@ -131,7 +131,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
             const result = SrcA + SrcB;
-            CPU.registers[R] = u16(result);
+            CPU.registers[R] = result;
             CPU.flag = Boolean(result >> 16);
         }
     },
@@ -140,7 +140,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
             const result = SrcA + SrcB + CPU.flag;
-            CPU.registers[R] = u16(result);
+            CPU.registers[R] = result;
             CPU.flag = Boolean(result >> 16);
         }
     },
@@ -149,7 +149,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
             const result = SrcA - SrcB;
-            CPU.registers[R] = u16(result);
+            CPU.registers[R] = result;
             CPU.flag = Boolean(result >> 16);
         }
     },
@@ -158,7 +158,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrcR,
         handler: (CPU, SrcA, SrcB, R) => {
             const result = SrcA - SrcB - CPU.flag;
-            CPU.registers[R] = u16(result);
+            CPU.registers[R] = result;
             CPU.flag = Boolean(result >> 16);
         }
     },
@@ -167,8 +167,8 @@ const Instructions = {
         operands: OperandPattern.SrcSrcRR,
         handler: (CPU, SrcA, SrcB, RA, RB) => {
             const result = SrcA * SrcB;
-            CPU.registers[RA] = (result >> 16) & 0xffff;
-            CPU.registers[RB] = result & 0xFFFF;     
+            CPU.registers[RA] = result >> 16;
+            CPU.registers[RB] = result;     
         }
     },
     0x14: {
@@ -176,8 +176,8 @@ const Instructions = {
         operands: OperandPattern.SrcSrcRR,
         handler: (CPU, SrcA, SrcB, RA, RB) => {
             const result = signExt(SrcA) * signExt(SrcB);
-            CPU.registers[RA] = (result >> 16) & 0xffff;
-            CPU.registers[RB] = result & 0xFFFF;
+            CPU.registers[RA] = result >> 16;
+            CPU.registers[RB] = result;
         }
     },
     0x15: {
@@ -249,7 +249,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB) => {
             CPU.applyPredicate = true;
-            CPU.predicateCondition = u16(SrcA) > u16(SrcB);
+            CPU.predicateCondition = SrcA > SrcB;
         }
     },
     0x1E: {
@@ -257,7 +257,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB) => {
             CPU.applyPredicate = true;
-            CPU.predicateCondition = u16(SrcA) < u16(SrcB);
+            CPU.predicateCondition = SrcA < SrcB;
         }
     },
     0x1F: {
@@ -296,7 +296,7 @@ const Instructions = {
         name: "CALL",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.registers[SP] = u16(CPU.registers[SP] - 2);
+            CPU.registers[SP] -= 2;
             storeWord(CPU, CPU.registers[SP], CPU.registers[IP]);
             CPU.registers[IP] = Src;
         }
@@ -305,7 +305,7 @@ const Instructions = {
         name: "PUSHB",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.registers[SP] = u16(CPU.registers[SP] - 1);
+            CPU.registers[SP]--;
             CPU.memory[CPU.registers[SP]] = u8(Src);
         }
     },
@@ -313,7 +313,7 @@ const Instructions = {
         name: "PUSHW",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
-            CPU.registers[SP] = u16(CPU.registers[SP] - 2);
+            CPU.registers[SP]-= 2;
             storeWord(CPU, CPU.registers[SP], Src);
         }
     },
@@ -322,7 +322,7 @@ const Instructions = {
         operands: OperandPattern.R,
         handler: (CPU, R) => {
             CPU.registers[R] = CPU.memory[CPU.registers[SP]];
-            CPU.registers[SP] = u16(CPU.registers[SP] + 1);
+            CPU.registers[SP] = CPU.registers[SP] + 1;
         }
     },
     0x27: {
@@ -330,7 +330,7 @@ const Instructions = {
         operands: OperandPattern.R,
         handler: (CPU, R) => {
             CPU.registers[R] = readWord(CPU, CPU.registers[SP]);
-            CPU.registers[SP] = u16(CPU.registers[SP] + 2); 
+            CPU.registers[SP] = CPU.registers[SP] + 2; 
         }
     },
     0x28: {

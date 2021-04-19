@@ -11,7 +11,7 @@
             </div>
             <div id="pane-container">
                 <div id="editor-pane" class="pane">
-                    <textarea id="editor" spellcheck="false"></textarea>
+                    <textarea id="editor" spellcheck="false" placeholder="Code goes here..."></textarea>
                 </div>
                 <div id="left-panes">
                     <div id="top-pane" class="pane">
@@ -28,9 +28,9 @@
                             </tr>
                         </table>
                         <button onclick="reassemble()">Assemble and Write</button>
-                        <button onclick="reset()">Reset</button>
-                        <button onclick="toggle()">Pause/go</button>
-                        <button onclick="singlestep()">Step</button>
+                        <button onclick="reset()" class="green">Reset</button>
+                        <button onclick="toggle()" class="green">Pause/go</button>
+                        <button onclick="singlestep()" class="green">Step</button>
                     </div>
                 </div>        
             </div>
