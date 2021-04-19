@@ -3,6 +3,7 @@ const table = document.getElementById("registers");
 const statusMsg = document.getElementById("status");
 const outputBox = document.getElementById("output");
 const editor = document.getElementById("editor");
+const runButton = document.getElementById("run-button");
 
 editor.addEventListener("keydown", (event) => {
     if(event.key === "Tab") {
@@ -57,6 +58,15 @@ let running =  false;
 
 const updateDisplays = () => {
     statusMsg.textContent = running ? "RUNNING" : "PAUSED";
+    if(running) {
+        runButton.classList.remove("green");
+        runButton.classList.add("red");
+        runButton.textContent = "Stop";
+    } else {
+        runButton.classList.remove("red");
+        runButton.classList.add("green");
+        runButton.textContent = "Run";
+    }
     for(let i = 0; i < 16; i++) {
         registerCells[i].textContent = "0x" + cpu.registers[i].toString(16);
     }
@@ -108,11 +118,11 @@ const reassemble = () => {
         write(cpu, assembled.code);
         console.log(assembled.symbols);
         reset(true);
+        alert("Successfully assembled!");
     } catch(error) {
         console.error(error);
         alert(error.message);
     }
-    alert("Successfully assembled!");
 };
 
 const toggle = () => {

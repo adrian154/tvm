@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title>TVM</title>
+        <meta charset="utf-8">
+        <title>TVM Toolkit</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="emulator.css">
     </head>
     <body>
         <div style="display: flex; flex-direction: column; height: 100%;">
             <div id="ribbon">
-                <p>TVM Toolkit</p>
+                <p>TVM Toolkit <mark style="color: #ffff00; background: none;">BETA</mark></p>
             </div>
             <div id="pane-container">
                 <div id="editor-pane" class="pane">
@@ -29,7 +31,7 @@
                         </table>
                         <button onclick="reassemble()">Assemble and Write</button>
                         <button onclick="reset()" class="green">Reset</button>
-                        <button onclick="toggle()" class="green">Pause/go</button>
+                        <button onclick="toggle()" class="green" id="run-button">Run</button>
                         <button onclick="singlestep()" class="green">Step</button>
                     </div>
                 </div>        
