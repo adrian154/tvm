@@ -52,6 +52,20 @@ body, html {
     color: rgba(255, 255, 255, 0.5);
 }
 
+#ribbon p {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#ribbon a {
+    color: #6bc4ff;
+    text-decoration: none;
+}
+
+#ribbon a:hover {
+    text-decoration: underline;
+}
+
 #editor {
     width: 100%;
     height: 100%;

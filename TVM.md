@@ -2,6 +2,8 @@
 
 **TVM (Tiny Virtual Machine)** is a made-up CPU architecture.
 
+[Try it out!](https://bithole.dev/tvm/tools/emulator.html)
+
 # General Info
 
 TVM is 16-bit and can address up to 64K of memory. Numbers are stored in little-endian order. 
