@@ -249,6 +249,7 @@ const assemble = (text) => {
     let offset = 0;
     
     // resolve labels
+    console.log(instructions);
     for(const instruction of instructions) {
         if(instruction.labelDeclaration) {
             if(labels[instruction.name]) throw new Error(`Duplicate label name ${instruction.name}`);
@@ -269,7 +270,7 @@ const assemble = (text) => {
             // replace labels
             for(const operand of instruction.operands) {
                 if(operand.type == Token.Label) {
-                    if(!labels[operand.name]) {
+                    if(!labels.hasOwnProperty(operand.name)) {
                         throw new Error(`Unknown label "${operand.name}"`);
                     }
                     operand.value = labels[operand.name];
