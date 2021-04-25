@@ -89,7 +89,7 @@ const tokenize = (text) => {
                 break;
             }
             case State.FindOperandEnd: {
-                if(char === "," || testWhitespace(char)) {
+                if(char === "," || char === ";" || testWhitespace(char)) {
 
                     // parse operand
                     let match;
@@ -109,6 +109,8 @@ const tokenize = (text) => {
 
                     if(char === ",") {
                         state = State.FindOperandStart;
+                    } else if(char === ";") {
+                        state = State.FindCommentEnd;
                     } else {
                         state = State.FindVerbStart;
                     }
@@ -242,7 +244,7 @@ const encode = (instruction) => {
 
 const assemble = (text) => {
 
-    const instructions = parse(tokenize(text + " "));
+    const instructions = parse(tokenize(text + "\n "));
     const labels = {};
     let offset = 0;
     
