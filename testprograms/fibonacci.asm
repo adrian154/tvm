@@ -1,3 +1,5 @@
+; contributed by drain
+
 ; the counter quickly overflows 
 ; writing a version using 32 bit arithmetic is left as an exercise to the reader
 fibonacci:

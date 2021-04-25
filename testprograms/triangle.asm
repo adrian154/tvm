@@ -1,3 +1,5 @@
+; contributed by drain
+
 triangle:
     mov 1, r0	; r0 = outer loop counter
 loop0:
