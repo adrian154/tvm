@@ -5,7 +5,7 @@ const WHITESPACE = /\s/;
 const NAME_CHAR = /[a-zA-Z0-9_-]/;
 
 // patterns
-const DECIMAL_LITERAL = /^[0-9]+$/;
+const DECIMAL_LITERAL = /^-?[0-9]+$/;
 const HEX_LITERAL = /^0x([a-fA-F0-9]+$)/;
 const BINARY_LITERAL = /^0b([01]+)$/;
 const REGISTER = /^[rR]([0-9a-fA-F])$/;
