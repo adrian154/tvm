@@ -12,13 +12,18 @@
         <div style="display: flex; flex-direction: column; height: 100%;">
             <div id="ribbon">
                 <p>TVM Toolkit <mark style="color: #ffff00; background: none;">BETA</mark></p>
-                <p style="float: right"><a href="https://github.com/adrian154/tvm/blob/main/TVM.md">Read the docs...</a></p>
+                <div id="buttons" style="margin-left: auto;">
+                    <button onclick="toggle()" id="run-button">Run</button>
+                    <button onclick="reassemble()">Assemble and Write</button>
+                    <button onclick="reset()">Reset</button>
+                    <button onclick="singlestep()">Step</button>
+                </div>
             </div>
             <div id="pane-container">
                 <div id="editor-pane" class="pane">
                     <textarea id="editor" spellcheck="false" placeholder="Code goes here..."></textarea>
                 </div>
-                <div id="left-panes">
+                <div id="right-panes">
                     <div id="top-pane" class="pane">
                         <pre id="output"></pre>
                     </div>
@@ -32,10 +37,6 @@
                                 <th>Value</th>
                             </tr>
                         </table>
-                        <button onclick="reassemble()">Assemble and Write</button>
-                        <button onclick="reset()" class="green">Reset</button>
-                        <button onclick="toggle()" class="green" id="run-button">Run</button>
-                        <button onclick="singlestep()" class="green">Step</button>
                     </div>
                 </div>        
             </div>

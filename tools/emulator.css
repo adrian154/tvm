@@ -17,13 +17,13 @@ body, html {
 }
 
 #editor-pane {
-    flex: 50%;
+    flex: 60%;
     background-color: #222222;
 }
 
-#left-panes {
+#right-panes {
     display: flex;
-    flex: 50%;
+    flex: 40%;
     flex-direction: column;
 }
 
@@ -46,15 +46,12 @@ body, html {
 }
 
 #ribbon {
+    display: flex;
+    align-items: center;
     background-color: #2e2e2e;
     padding: 0 1.0em;
     font-size: 12pt;
     color: rgba(255, 255, 255, 0.5);
-}
-
-#ribbon p {
-    display: inline-block;
-    vertical-align: top;
 }
 
 #ribbon a {
@@ -84,16 +81,29 @@ body, html {
 
 button {
     border: none;
-    border-radius: 5px;
+    height: 100%;
     color: #ffffff;
     font-weight: bold;
-    background-color: #4287f5;
+    font-family: inherit;
+    background: none;
     padding: 0.8em;
-    margin: 1.0em 0;
+    font-weight: normal;
+}
+
+#buttons {
+    font-size: 0;
+    height: 100%;
 }
 
 button:hover {
-    color: #cccccc;
+    color: #ffffff;
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover:not(#run-button) {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 table, th, td {
