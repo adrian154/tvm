@@ -54,7 +54,7 @@ The order of the operands is the order they will be stored as part of the intruc
 |`0x7`|NOT|Register|Stores bitwise NOT of Register into Register|
 |`0x8`|AND|Source(A), Source(B), Register|Stores the bitwise AND of A and B into Register|
 |`0x9`|OR|Source(A), Source(B), Register|Stores the bitwise OR of A and B into Register|
-|`0xa`|XOR|Source(A), Source(B)|Stores the bitwise XOR of A and B into Register|
+|`0xa`|XOR|Source(A), Source(B), Register|Stores the bitwise XOR of A and B into Register|
 |`0xb`|SHL|Source(Value), Source(Bits), Register|Stores Value shifted left by Bits into Register|
 |`0xc`|ASR|Source, Source, Register|Stores Value shifted right by Bits into Register, filling empty bits with the original MSB|
 |`0xd`|SHR|Source, Source, Register|Stores Value shifted right by Bits into Register, filling empty bits with zero|

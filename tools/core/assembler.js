@@ -136,7 +136,7 @@ const tokenize = (text) => {
 
     }
 
-    if(state != State.FindVerbStart) {
+    if(state !== State.FindVerbStart) {
         console.error(state);
         throw new Error("Reached unexpected end of input");
     }
@@ -233,7 +233,7 @@ const encode = (instruction) => {
     }
     const buffer = [instruction.opcode | (srcMask << 6)];
     for(const operand of instruction.operands) {
-        if(operand.type == Token.Register) {
+        if(operand.type === Token.Register) {
             buffer.push(operand.register);
         } else if(operand.hasOwnProperty("value")) {
             buffer.push(operand.value & 0xFF, (operand.value & 0xFF00) >> 8);
@@ -269,7 +269,7 @@ const assemble = (text) => {
         if(!instruction.labelDeclaration) {
             // replace labels
             for(const operand of instruction.operands) {
-                if(operand.type == Token.Label) {
+                if(operand.type === Token.Label) {
                     if(!labels.hasOwnProperty(operand.name)) {
                         throw new Error(`Unknown label "${operand.name}"`);
                     }

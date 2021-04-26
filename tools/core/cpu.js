@@ -217,7 +217,7 @@ const Instructions = {
         operands: OperandPattern.R,
         handler: (CPU, R) => {
             CPU.applyPredicate = true;
-            CPU.predicateCondition = R == 0;
+            CPU.predicateCondition = R === 0;
         }
     },
     25: {
@@ -225,7 +225,7 @@ const Instructions = {
         operands: OperandPattern.R,
         handler: (CPU, R) => {
             CPU.applyPredicate = true;
-            CPU.predicateCondition = R != 0;
+            CPU.predicateCondition = R !== 0;
         }
     },
     26: {
@@ -241,7 +241,7 @@ const Instructions = {
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB) => {
             CPU.applyPredicate = true;
-            CPU.predicateCondition = SrcA != SrcB;
+            CPU.predicateCondition = SrcA !== SrcB;
         }
     },
     28: {
@@ -345,7 +345,7 @@ const Instructions = {
 };
 
 const readSrc = (CPU, type) => {
-    if(type == SRC_TYPE_IMM) {
+    if(type === SRC_TYPE_IMM) {
         const value = readWord(CPU, CPU.registers[IP]);
         CPU.registers[IP] += 2;
         return value;
