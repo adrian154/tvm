@@ -12,7 +12,7 @@ loop:
     call printnumber ; print r0
     mov r1, r0
     mov r2, r1
-    tmpprint 0xA
+    out 0xA
     mov loop, rf
 
 printnumber:
@@ -26,7 +26,7 @@ digitsloop:
 printloop:
     ifeq re, r3 mov doneprint, rf
     popb r0
-    tmpprint r0 
+    out r0 
     mov printloop, rf
 doneprint:
     popw rf

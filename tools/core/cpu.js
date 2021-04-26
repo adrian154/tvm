@@ -334,11 +334,11 @@ const Instructions = {
         }
     },
     39: {
-        name: "TMPPRINT",
+        name: "OUT",
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
             if(CPU.onPrint) {
-                CPU.onPrint(Src);
+                CPU.onPrint(Src & 0xff);
             }
         }
     }
@@ -400,8 +400,6 @@ const step = (CPU) => {
         CPU.applyPredicate = false;
         if(!CPU.predicateCondition) return;
     }
-
-    //console.log(CPU.registers[IP], insn.name, operands, src0Type, src1Type, cpu.applyPredicate, cpu.predicateCondition);
 
     insn.handler(CPU, ...operands);
 

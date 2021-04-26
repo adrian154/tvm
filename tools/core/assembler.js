@@ -146,14 +146,18 @@ const tokenize = (text) => {
 };
 
 const createOpcodeDictionary = () => {
+    
     const dictionary = {};
+    
     for(const opcode in Instructions) {
         const instruction = Instructions[opcode];
         instruction.opcode = Number(opcode); // necessary cast, thanks @pancake
         dictionary[instruction.name.toLowerCase()] = instruction;
         dictionary[instruction.name.toUpperCase()] = instruction; 
     }
+
     return dictionary;
+
 };
 
 const opcodeDictionary = createOpcodeDictionary();
@@ -185,7 +189,32 @@ const parse = (tokens) => {
             
             const instruction = opcodeDictionary[token.name];
             if(!instruction) {
+
+                // builtins
+                if(token.name === "byte" || token.name === "BYTE") {
+                    const values = [];
+                    while(tokens[0]?.hasOwnProperty("value")) {
+                        const value = tokens.shift().value;
+                        if(value > 0xff) throw new Error(`Encountered value too large to fit within byte (line ${token.line})`);
+                        values.push(value);
+                    }
+                    instructions.push({data: values});
+                    continue;
+                }
+                
+                if(token.name === "word" || token.name === "WORD") {
+                    const values = [];
+                    while(tokens[0]?.hasOwnProperty("value")) {
+                        const value = tokens.shift().value;
+                        if(value > 0xffff) throw new Error(`Encountered value too large to fit within byte (line ${token.line})`);
+                        values.push(value & 0xff, value >> 8);
+                    }
+                    instructions.push({data: values});
+                    continue;
+                }
+                
                 throw new Error(`Unknown instruction "${token.name}" (line ${token.line})`);
+
             }
             
             let operands;
@@ -224,6 +253,7 @@ const parse = (tokens) => {
 };
 
 const encode = (instruction) => {
+    if(instruction.data) return instruction.data;
     let srcMask = 0;
     if(instruction.pattern >= OperandPattern.Src) {
         srcMask = (instruction.operands[0].hasOwnProperty("value") ? SRC_TYPE_IMM : SRC_TYPE_REG) << 1;
@@ -244,16 +274,18 @@ const encode = (instruction) => {
 
 const assemble = (text) => {
 
+    // this next part is super janky - attach some whitespace to fix problems
     const instructions = parse(tokenize(text + "\n "));
     const labels = {};
     let offset = 0;
     
     // resolve labels
-    console.log(instructions);
     for(const instruction of instructions) {
         if(instruction.labelDeclaration) {
             if(labels[instruction.name]) throw new Error(`Duplicate label name ${instruction.name}`);
             labels[instruction.name] = offset;
+        } else if(instruction.data) {
+            offset += instruction.data.length;
         } else {
             let instructionLength = 1;
             for(const operand of instruction.operands) {
@@ -266,8 +298,9 @@ const assemble = (text) => {
     // do it
     let buffer = [];
     for(const instruction of instructions) {
-        if(!instruction.labelDeclaration) {
-            // replace labels
+        // replace labels
+        if(instruction.labelDeclaration) continue;
+        if(instruction.operands) {
             for(const operand of instruction.operands) {
                 if(operand.type === Token.Label) {
                     if(!labels.hasOwnProperty(operand.name)) {
@@ -276,8 +309,8 @@ const assemble = (text) => {
                     operand.value = labels[operand.name];
                 }
             }
-            buffer = buffer.concat(encode(instruction));
         }
+        buffer = buffer.concat(encode(instruction));
     }
 
     return {code: buffer, symbols: labels};

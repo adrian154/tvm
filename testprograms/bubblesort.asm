@@ -105,7 +105,7 @@ printAAAA:
 	printAAAA_loop:
 		loadb r1, r0
 		call printNumber
-		tmpprint 32 ; print a space
+		out 32 ; print a space
 		add r1, 1, r1
 		ifneq r2, r1 mov printAAAA_loop, rf
 	call printNewline
@@ -120,7 +120,7 @@ printAAAA:
 ; prints a newline
 ; clean
 printNewline:
-	tmpprint 0x0A
+	out 0x0A
 	popw rf
 
 
@@ -131,6 +131,6 @@ printNewline:
 ; clean
 printNumber:
 	add r0, 48, r0
-	tmpprint r0
+	out r0
 	sub r0, 48, r0
 	popw rf

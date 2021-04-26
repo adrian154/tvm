@@ -28,9 +28,9 @@ drawN:
 	pushw r0
 	
 	drawN_loop:
-		tmpprint 0x2A
+		out 0x2A
 		sub r0, 1, r0
 		ifneq r0, 0 mov drawN_loop, rf
-	tmpprint 0x0A
+	out 0x0A
 	popw r0
 	popw rf

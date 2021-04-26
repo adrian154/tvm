@@ -83,4 +83,4 @@ The order of the operands is the order they will be stored as part of the intruc
 |`0x24`|PUSHW|Source|Pushes Source to the stack and moves the stack pointer down two bytes|
 |`0x25`|POPB|Register|Pops a byte from the stack into Register and moves the stack pointer up one byte|
 |`0x26`|POPW|Register|Pops a word from the stack into Register and moves the stack pointer up two bytes|
-|`0x27`|TMPPRINT|Source|**TEMPORARY** Prints Source to the terminal as ASCII/whatever|
+|`0x27`|OUT|Source|Prints lower byte of Source to stdout|
