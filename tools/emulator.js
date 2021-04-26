@@ -1,9 +1,11 @@
 const bottomPane = document.getElementById("bottom-pane");
 const table = document.getElementById("registers");
 const statusMsg = document.getElementById("status");
+const otherStateMsg = document.getElementById("other-state");
 const outputBox = document.getElementById("output");
 const editor = document.getElementById("editor");
 const runButton = document.getElementById("run-button");
+const formatSelector = document.getElementById("number-format");
 
 editor.addEventListener("keydown", (event) => {
     if(event.key === "Tab") {
@@ -58,6 +60,7 @@ let running =  false;
 
 const updateDisplays = () => {
     statusMsg.textContent = running ? "RUNNING" : "PAUSED";
+    otherStateMsg.textContent = `Flag is ${cpu.flag ? "set" : "unset"}; the next instruction ${(cpu.applyPredicate ? cpu.predicateCondition : true) ? "will" : "will not"} be executed`;
     if(running) {
         runButton.classList.remove("green");
         runButton.classList.add("red");
@@ -67,8 +70,10 @@ const updateDisplays = () => {
         runButton.classList.add("green");
         runButton.textContent = "Run";
     }
+    const radix = Number(formatSelector.value);
+    const fullLength = radix == 2 ? 16 : radix == 10 ? 5 : 4;
     for(let i = 0; i < 16; i++) {
-        registerCells[i].textContent = "0x" + cpu.registers[i].toString(16);
+        registerCells[i].textContent = cpu.registers[i].toString(radix).padStart(fullLength, "0");
     }
 };
 
@@ -80,14 +85,16 @@ const singlestep = () => {
         console.error(error);
         running = false;
     }
-    updateDisplays();
 };
+
+
 
 const run = () => {
     if(running) {
         for(let i = 0; i < 200; i++) {
             singlestep();
         }
+        updateDisplays();
     }
     setTimeout(run, 10);
 };
