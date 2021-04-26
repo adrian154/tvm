@@ -16,7 +16,8 @@ const Token = Object.freeze({
     Instruction: "instruction",
     Register: "register",
     Number: "number",
-    Label: "label"
+    Label: "label",
+    String: "string"
 });
 
 const State = Object.freeze({
@@ -24,7 +25,10 @@ const State = Object.freeze({
     FindVerbEnd: 1,
     FindOperandStart: 2,
     FindOperandEnd: 3,
-    FindCommentEnd: 4
+    FindCommentEnd: 4,
+    FindStringEnd: 5,
+    HandleEscape: 6,
+    AfterOperand: 7
 });
 
 const tokenize = (text) => {
@@ -82,10 +86,31 @@ const tokenize = (text) => {
             }
             case State.FindOperandStart: {
                 if(!testWhitespace(char)) {
-                    state = State.FindOperandEnd;
+                    if(char === "\"") {
+                        state = State.FindStringEnd;
+                    } else {
+                        state = State.FindOperandEnd;
+                        stay = true;
+                    }
                     curToken = "";
-                    stay = true;
                 }
+                break;
+            }
+            case State.FindStringEnd: {
+                if(char === "\"") { 
+                    tokens.push({type: Token.String, string: JSON.parse('"' + curToken + '"')});
+                    state = State.AfterOperand;
+                } else if(char === "\\") {
+                    state = State.HandleEscape;
+                } else {
+                    curToken += char;
+                }
+                break;
+            }
+            case State.HandleEscape: {
+                // do nothing, let the parser advance
+                curToken += "\\" + char;
+                state = State.FindStringEnd;
                 break;
             }
             case State.FindOperandEnd: {
@@ -107,16 +132,21 @@ const tokenize = (text) => {
                         throw new Error(`Illegal operand "${curToken}" (line ${line})`);
                     }
 
-                    if(char === ",") {
-                        state = State.FindOperandStart;
-                    } else if(char === ";") {
-                        state = State.FindCommentEnd;
-                    } else {
-                        state = State.FindVerbStart;
-                    }
+                    stay = true;
+                    state = State.AfterOperand;
 
                 } else {
                     curToken += char;
+                }
+                break;
+            }
+            case State.AfterOperand: {
+                if(char === ",") {
+                    state = State.FindOperandStart;
+                } else if(char === ";") {
+                    state = State.FindCommentEnd;
+                } else {
+                    state = State.FindVerbStart;
                 }
                 break;
             }
@@ -213,6 +243,13 @@ const parse = (tokens) => {
                     continue;
                 }
                 
+                if(token.name === "string" || token.name === "STRING") {
+                    // TODO: fix this lazy string encoding
+                    const string = checkType(tokens.shift(), Token.String).string;
+                    instructions.push({data: string.split("").map(char => char.charCodeAt(0) & 0xff)});
+                    continue;
+                }
+
                 throw new Error(`Unknown instruction "${token.name}" (line ${token.line})`);
 
             }

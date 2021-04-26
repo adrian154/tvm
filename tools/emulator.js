@@ -85,11 +85,11 @@ const singlestep = () => {
     }
 };
 
-
+let speed = 200;
 
 const run = () => {
     if(running) {
-        for(let i = 0; i < 200; i++) {
+        for(let i = 0; i < speed; i++) {
             singlestep();
         }
         updateDisplays();
