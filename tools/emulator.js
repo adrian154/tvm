@@ -6,6 +6,7 @@ const outputBox = document.getElementById("output");
 const editor = document.getElementById("editor");
 const runButton = document.getElementById("run-button");
 const formatSelector = document.getElementById("number-format");
+const uploader = document.getElementById("uploader");
 
 editor.addEventListener("keydown", (event) => {
     if(event.key === "Tab") {
@@ -13,12 +14,9 @@ editor.addEventListener("keydown", (event) => {
         const start = event.target.selectionStart, end = event.target.selectionEnd;
         event.target.value = event.target.value.substring(0, start) + "\t" + event.target.value.substring(end);
         event.target.selectionStart = event.target.selectionEnd = start + 1;
-        //this.selectionStart = this.selectionEnd = this.selectionStart + 1;
-
     }
 });
 
-// helper for testing: write crap to memory
 const write = (CPU, data, offset) => {
     offset = offset ?? 0;
     for(let i = 0; i < data.length; i++) {
@@ -135,4 +133,30 @@ const reassemble = () => {
 const toggle = () => {
     running = !running;
     updateDisplays();
+};
+
+const download = () => {
+    const blob = new Blob([cpu.memory], {type: "application/octet-stream"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dump.bin`;
+    a.click();
+};
+
+uploader.addEventListener("change", () => {
+    const file = uploader.files[0];
+    file.arrayBuffer().then(arrayBuffer => {
+        if(arrayBuffer.byteLength != 65536) {
+            alert("The uploaded file isn't the right size.");
+            return;
+        } else {
+            write(cpu, new Uint8Array(arrayBuffer), 0);
+            alert("Wrote uploaded dump to memory!");
+        }
+    });
+});
+
+const upload = () => {
+    uploader.click();
 };

@@ -11,13 +11,18 @@
     <body>
         <div style="display: flex; flex-direction: column; height: 100%;">
             <div id="ribbon">
-                <p>TVM Toolkit <mark style="color: #ffff00; background: none;">BETA</mark></p>
-                <div id="buttons" style="margin-left: auto;">
+                <div id="buttons">
                     <button onclick="toggle()" id="run-button">Run</button>
                     <button onclick="reassemble()">Assemble and Write</button>
                     <button onclick="reset()">Reset</button>
                     <button onclick="singlestep()">Step</button>
+                    <button onclick="download()">Dump memory</button>
+                    <button onclick="upload()">Upload memory</button>
+                    <input type="file" id="uploader" style="display: none;">
                 </div>
+                <p style="margin-left: auto;">
+                    <a href="https://github.com/adrian154/tvm/blob/main/TVM.md">Read the docs...</a>
+                </p>
             </div>
             <div id="pane-container">
                 <div id="editor-pane" class="pane">
