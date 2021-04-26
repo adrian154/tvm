@@ -8,6 +8,7 @@ const NAME_CHAR = /[a-zA-Z0-9_-]/;
 const DECIMAL_LITERAL = /^-?[0-9]+$/;
 const HEX_LITERAL = /^0x([a-fA-F0-9]+$)/;
 const BINARY_LITERAL = /^0b([01]+)$/;
+const CHAR_LITERAL = /^'(.)'$/;
 const REGISTER = /^[rR]([0-9a-fA-F])$/;
 const LABEL = /^[a-zA-Z0-9_-]+$/;
 
@@ -124,6 +125,8 @@ const tokenize = (text) => {
                         tokens.push({type: Token.Number, value: parseInt(match[1], 16), line: line});
                     } else if((match = curToken.match(BINARY_LITERAL))) {
                         tokens.push({type: Token.Number, value: parseInt(match[1], 2), line: line});
+                    } else if((match = curToken.match(CHAR_LITERAL))) {
+                        tokens.push({type: Token.Number, value: match[1].charCodeAt(0), line: line});
                     } else if(DECIMAL_LITERAL.test(curToken)) {
                         tokens.push({type: Token.Number, value: parseInt(curToken), line: line});
                     } else if(LABEL.test(curToken)) {
