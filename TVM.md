@@ -39,6 +39,10 @@ All instructions have one of seven fixed operand patterns.
 * **Source, Source**
 * **Source, Source, Register** 
 
+There's also two special operand patterns for offset loads/stores:
+* **Source, Immediate, Register**
+* **Source, Source, Immediate**
+
 The order of the operands is the order they will be stored as part of the intruction.
 
 # Instructions
@@ -84,3 +88,7 @@ The order of the operands is the order they will be stored as part of the intruc
 |`0x25`|POPB|Register|Pops a byte from the stack into Register and moves the stack pointer up one byte|
 |`0x26`|POPW|Register|Pops a word from the stack into Register and moves the stack pointer up two bytes|
 |`0x27`|OUT|Source|Prints lower byte of Source to stdout|
+|`0x28`|OSTOREB|Source(A), Source(B), I|Stores A at address B + I|
+|`0x29`|OSTOREW|Source(A), Source(B), I|Full word version of OSTOREB|
+|`0x30`|OLOADB|Source, I, R|Loads byte at address Source + I into register R|
+|`0x31`|OLOADW|Full word version of OLOADB|
