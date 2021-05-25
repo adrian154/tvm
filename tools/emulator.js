@@ -80,7 +80,6 @@ const singlestep = () => {
         step(cpu);
     } catch(error) {
         alert("Runtime error: " + error.message);
-        console.error(error);
         running = false;
     }
 };
@@ -89,7 +88,7 @@ let speed = 200;
 
 const run = () => {
     if(running) {
-        for(let i = 0; i < speed; i++) {
+        for(let i = 0; i < speed && running; i++) {
             singlestep();
         }
         updateDisplays();

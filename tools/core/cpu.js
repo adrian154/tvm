@@ -5,7 +5,9 @@ const OperandPattern = Object.freeze({
     SrcR: 3,
     SrcSrc: 4,
     SrcSrcR: 5,
-    SrcSrcRR: 6
+    SrcSrcRR: 6,
+    SrcSrcI: 7,
+    SrcIR: 8
 });
 
 const SRC_TYPE_REG = 0;
@@ -341,18 +343,49 @@ const Instructions = {
                 CPU.onPrint(Src & 0xff);
             }
         }
-    }
+    },
+    40: {
+        name: "OSTOREB",
+        operands: OperandPattern.SrcSrcI,
+        handler: (CPU, SrcA, SrcB, I) => {
+            CPU.memory[u16(SrcB + I)] = u8(SrcA);
+        }
+    },
+    41: {
+        name: "OSTOREW",
+        operands: OperandPattern.SrcSrcI,
+        handler: (CPU, SrcA, SrcB, I) => {
+            storeWord(CPU, u16(SrcB + I), SrcA);
+        }
+    },
+    42: {
+        name: "OLOADB",
+        operands: OperandPattern.SrcIR,
+        handler: (CPU, Src, Imm, R) => {
+            CPU.registers[R] = CPU.memory[u16(Src + Imm)];
+        }
+    },
+    43: {
+        name: "OLOADW",
+        operands: OperandPattern.SrcIR,
+        handler: (CPU, Src, Imm, R) => {
+            CPU.registers[R] = readWord(CPU, u16(Src + Imm));
+        }
+    },
 };
 
 const readSrc = (CPU, type) => {
     if(type === SRC_TYPE_IMM) {
-        const value = readWord(CPU, CPU.registers[IP]);
-        CPU.registers[IP] += 2;
-        return value;
+        return readInsnWord(CPU);
     } else {
-        const value = CPU.registers[CPU.memory[CPU.registers[IP]++] & 0x0F];
-        return value;
+        return CPU.registers[CPU.memory[CPU.registers[IP]++] & 0x0F];
     }
+};
+
+const readInsnWord = (CPU) => {
+    const value = readWord(CPU, CPU.registers[IP]);
+    CPU.registers[IP] += 2;
+    return value;
 };
 
 const readRegister = (CPU) => CPU.memory[CPU.registers[IP]++] & 0x0F;
@@ -366,6 +399,7 @@ const step = (CPU) => {
     const src1Type = (opcodeFull & 0b01000000) >> 6;
     const insn = Instructions[opcode];
 
+    console.log(CPU.registers[IP] - 1, opcodeFull);
     if(!insn) {
         throw new Error(`Assembly error: Unknown opcode 0x${opcode.toString(16)}`);
     }
@@ -394,12 +428,20 @@ const step = (CPU) => {
         case OperandPattern.SrcSrcRR:
             operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU), readRegister(CPU)];
         break;
+        case OperandPattern.SrcSrcI:
+            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readInsnWord(CPU)];
+        break;
+        case OperandPattern.SrcIR:
+            operands = [readSrc(CPU, src0Type), readInsnWord(CPU), readRegister(CPU)];
+        break;
     }
     
     if(CPU.applyPredicate) {
         CPU.applyPredicate = false;
         if(!CPU.predicateCondition) return;
     }
+
+    //console.log(insn.name, operands);
 
     insn.handler(CPU, ...operands);
 

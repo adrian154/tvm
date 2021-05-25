@@ -209,6 +209,13 @@ const checkIsSource = (token) => {
     return token;
 };
 
+const checkIsImmediate = (token) => {
+    if(!token.hasOwnProperty("value")) {
+        throw new Error(`Expected immediate value but got ${token?.type ??  "end of input"} (line ${token.line})`);
+    }
+    return token;
+};
+
 const parse = (tokens) => {
 
     let instructions = [];
@@ -277,6 +284,12 @@ const parse = (tokens) => {
                 break;
                 case OperandPattern.SrcSrcRR:
                     operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift()), checkType(tokens.shift(), Token.Register), checkType(tokens.shift(), Token.Register)];
+                break;
+                case OperandPattern.SrcSrcI:
+                    operands = [checkIsSource(tokens.shift()), checkIsSource(tokens.shift()), checkIsImmediate(tokens.shift())];
+                break;
+                case OperandPattern.SrcIR:
+                    operands = [checkIsSource(tokens.shift()), checkIsImmediate(tokens.shift()), checkType(tokens.shift(), Token.Register)];
                 break;
             }
 
