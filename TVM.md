@@ -92,3 +92,7 @@ The order of the operands is the order they will be stored as part of the intruc
 |`0x29`|OSTOREW|Source(A), Source(B), I|Full word version of OSTOREB|
 |`0x30`|OLOADB|Source, I, R|Loads byte at address Source + I into register R|
 |`0x31`|OLOADW|Full word version of OLOADB|
+
+# Built-in assembler notes
+
+* Instructions which take no operands must end with a period to indicate to the assembler that there are no operands, see [this issue](https://github.com/adrian154/tvm/issues/11).

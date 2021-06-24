@@ -266,7 +266,9 @@ const parse = (tokens) => {
             
             let operands;
             switch(instruction.operands) {
-                case OperandPattern.NONE: break;
+                case OperandPattern.NONE: 
+                    operands = [];
+                break;
                 case OperandPattern.R:
                     operands = [checkType(tokens.shift(), Token.Register)];
                 break;
