@@ -9,12 +9,15 @@
         <link rel="stylesheet" href="emulator.css">
     </head>
     <body>
+        <div id="popup">
+            <span>text goes here</span>
+        </div>
         <div style="display: flex; flex-direction: column; height: 100%;">
             <div id="ribbon">
                 <div id="buttons">
                     <button onclick="toggle()" id="run-button">Run</button>
                     <button onclick="reassemble()">Assemble and Write</button>
-                    <button onclick="reset()">Reset</button>
+                    <button onclick="showPopup('Reset!'); reset()">Reset</button>
                     <button onclick="singlestep(); updateDisplays()">Step</button>
                     <button onclick="download()">Dump memory</button>
                     <button onclick="upload()">Upload memory</button>

@@ -122,3 +122,35 @@ th, td {
 .red {
     background-color: #f04d4d;
 }
+
+#popup {
+    position: absolute;
+    top: -5.0em;
+    left: 50%;
+    transform: translate(-50%, 0);
+    margin: 1.0em;
+    padding: 1.0em;
+    background-color: #fff;
+    color: #000;
+}
+
+.animate {
+    animation-duration: 1.5s;
+    animation-name: slide;
+}
+
+@keyframes slide {
+
+    from {
+        top: -5.0em;
+    }
+
+    50% {
+        top: 0;
+    }
+
+    to {
+        top: -5.0em;
+    }
+
+}

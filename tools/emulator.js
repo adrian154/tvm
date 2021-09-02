@@ -7,6 +7,7 @@ const editor = document.getElementById("editor");
 const runButton = document.getElementById("run-button");
 const formatSelector = document.getElementById("number-format");
 const uploader = document.getElementById("uploader");
+const popup = document.getElementById("popup");
 
 editor.addEventListener("keydown", (event) => {
     if(event.key === "Tab") {
@@ -79,7 +80,7 @@ const singlestep = () => {
     try {
         step(cpu);
     } catch(error) {
-        alert("Runtime error: " + error.message);
+        showPopup("Runtime error: " + error.message, showPopup);
         running = false;
     }
 };
@@ -122,10 +123,9 @@ const reassemble = () => {
         write(cpu, assembled.code);
         console.log(assembled.symbols);
         reset(true);
-        alert("Successfully assembled!");
+        showPopup("Successfully assembled!");
     } catch(error) {
-        console.error(error);
-        alert(error.message);
+        showPopup(error.message, true);
     }
 };
 
@@ -147,13 +147,27 @@ uploader.addEventListener("change", () => {
     const file = uploader.files[0];
     file.arrayBuffer().then(arrayBuffer => {
         if(arrayBuffer.byteLength != 65536) {
-            alert("The uploaded file isn't the right size.");
+            showPopup("The uploaded file isn't the right size.", true);
             return;
         } else {
             write(cpu, new Uint8Array(arrayBuffer), 0);
-            alert("Wrote uploaded dump to memory!");
+            showPopup("Wrote uploaded dump to memory!");
         }
     });
+});
+
+const showPopup = (text, error) => {
+    popup.textContent = text;
+    popup.classList.add("animate");
+    if(error) {
+        popup.style.color = "red";
+    } else {
+        popup.style.color = "black";
+    }
+};
+
+popup.addEventListener("animationend", () => {
+    popup.classList.remove("animate");
 });
 
 const upload = () => {
