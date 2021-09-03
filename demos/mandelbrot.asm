@@ -1,3 +1,5 @@
+; contributed by adrian
+; please excuse the sloppy register spilling
 
 ; r0 = x
 ; r1 = y
@@ -21,36 +23,62 @@ xloop:
         mul r3, 2, rc, r3 
         sub r3, 255
 
-        ; r4, r5 = zx, zy
+        ; r4, r5 = zimaginary, zreal
         ; r6 = zloop counter
-        ; iterate z_{n+1} = z_n + c
+        ; iterate z_{n+1} = z_n^2 + c
         mov 0, r4
         mov 0, r5
         mov 0, r6
+
+        ; flag = whether z is in the mandelbrot set
+        sf
+
         zloop:
 
-            ; TODO
+            ; r7, r8 = temp
+            ; r9, ra = z components
+            mul r4, r4, r7
+            mul r5, r5, r8
+
+            ; calculate Im(z)
+            sub r7, r8, r9
+            add r9, r2, r9
+
+            ; calculate Re(z)
+            mul r4, 2, ra
+            mul ra, r5, ra
+            add ra, r3, ra
+
+            ; move temp components back to main
+            mov r4, r9
+            mov r5, ra
+
+            ifl r9, 1
+            ifl ra, 1
+            mov zloop_cont, rf
+
+            ; break
+            cf
+            mov exitzloop, rf
+
+            zloop_cont:
 
             add r6, 1, r6
             ifeq r6, 32 mov exitzloop, rf
-            mov exitzloop, rf
+            mov zloop, rf
+
         exitzloop:
 
-        ifl r4, 1 ifl r5, 1 mov rf, print
-        back:
+        iff out '#'
+        ifnf out ' '
 
         add r1, 1, r1
         ifeq r1, 64 mov exityloop, rf
         mov yloop, rf
 
     exityloop:
-    add r0, 1, r0
-    ifeq r0, 64 mov exitxloop, rf
-    mov xloop, rf
+     add r0, 1, r0
+        ifeq r0, 64 mov exitxloop, rf
+        mov xloop, rf
 exitxloop:
-mov exitxloop, rf
-
-print:
-
-; TODO
-mov back, rf
+    mov exitxloop, rf

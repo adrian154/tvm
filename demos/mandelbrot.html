@@ -17,18 +17,17 @@
 
                     // iterate sequence z_n+1 = z_n + c (c is the point)
                     let z = [0, 0];
-                    for(let i = 0; i < 10; i++) {
+                    ctx.fillStyle = "#000000";
+                    for(let i = 0; i < 32; i++) {
                         let nextzr = z[0] * z[0] - z[1] * z[1] + x;
                         let nextzi = 2 * z[0] * z[1] + y;
                         z[0] = nextzr;
                         z[1] = nextzi;
+                        if(z[0] >= 1 || z[1] >= 1) {
+                            ctx.fillStyle = "#ffffff";
+                            break;    
+                        }
                     }
-
-                    // check if it's bounded
-                    if(z[0] <= 1 && z[1] <= 1)
-                        ctx.fillStyle = "#000000";
-                    else
-                        ctx.fillStyle = "#ffffff";
 
                     ctx.fillRect(sx, sy, 1, 1);
 

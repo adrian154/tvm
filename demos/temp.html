@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Mandelbrot</title>
+    </head>
+    <body>
+        <canvas id="output" width="400" height="400" style="border: 1px solid black;"></canvas>
+        <script>
+            const canvas = document.getElementById("output");
+            const ctx = canvas.getContext("2d");
+
+            const dim = Math.min(canvas.width, canvas.height);
+            for(let sx = 0; sx < canvas.width; sx++) {
+                for(let sy = 0; sy < canvas.height; sy++) {
+
+                    const x = (sx / dim) * 2-1.5;
+                    const y = (sy / dim) * 2-1;
+
+                    // iterate sequence z_n+1 = z_n + c (c is the point)
+                    let z = [0, 0];
+                    ctx.fillStyle = "#000000";
+                    for(let i = 0; i < 32; i++) {
+                        let nextzr = z[0] * z[0] - z[1] * z[1] + x;
+                        let nextzi = 2 * z[0] * z[1] + y;
+                        z[0] = nextzr;
+                        z[1] = nextzi;
+                        if(z[0] >= 1 || z[1] >= 1) {
+                            ctx.fillStyle = "#ffffff";
+                            break;    
+                        }
+                    }
+
+                    ctx.fillRect(sx, sy, 1, 1);
+
+                }
+            }
+        </script>
+    </body>
+</html>
