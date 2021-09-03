@@ -6,7 +6,7 @@ const NAME_CHAR = /[a-zA-Z0-9_-]/;
 
 // patterns
 const DECIMAL_LITERAL = /^-?[0-9]+$/;
-const HEX_LITERAL = /^0x([a-fA-F0-9]+$)/;
+const HEX_LITERAL = /^0x([a-fA-F0-9]+)$/;
 const BINARY_LITERAL = /^0b([01]+)$/;
 const CHAR_LITERAL = /^'(.)'$/;
 const REGISTER = /^[rR]([0-9a-fA-F])$/;
@@ -32,6 +32,8 @@ const State = Object.freeze({
     AfterOperand: 7
 });
 
+const assembleError = (line, message) => new Error(`line ${line}: ${message}`);
+
 const tokenize = (text) => {
 
     let state = State.FindVerbStart;
@@ -41,41 +43,41 @@ const tokenize = (text) => {
     let tokens = [];
     let line = 1;
 
-    const testWhitespace = (char) => {
-        if(WHITESPACE.test(char)) {
-            if(char === "\n") line++; 
-            return true;
-        } else {
-            return false;
-        }
-    };
-
     while(pos < text.length) {
 
         const char = text[pos];
-
-        console.log(char, state);
+        if(char === "\n" && !stay) {
+            line++;
+        }
 
         switch(state) {
+
             case State.FindVerbStart: {
+            
+                // start parsing verb
                 if(NAME_CHAR.test(char)) {
                     state = State.FindVerbEnd;
                     curToken = "";
                     stay = true;
                 } else if(char === ";") {
                     state = State.FindCommentEnd;
-                } else if(!testWhitespace(char)) {
-                    throw new Error(`Illegal character in verb: "${char}" (line ${line})`);
+                } else if(!WHITESPACE.test(char)) {
+                    throw assembleError(line, `Illegal character in verb: "${char}"`);
                 }
+
                 break;
+            
             }
+            
             case State.FindVerbEnd: {
                 if(NAME_CHAR.test(char)) {
                     curToken += char;
                 } else if(char === ":") {
+                    // false alarm, it was a label declaration
                     tokens.push({type: Token.LabelDeclaration, name: curToken, line: line});
                     state = State.FindVerbStart;
-                } else if(char === "." || testWhitespace(char)) {
+                } else if(char === "." || WHITESPACE.test(char)) {
+                    // caveat: periods are necessary to indicate to the assembler that an instruction has no operands
                     tokens.push({type: Token.Instruction, name: curToken, line: line});
                     if(char == ".") {
                         state = State.FindVerbStart;
@@ -83,12 +85,13 @@ const tokenize = (text) => {
                         state = State.FindOperandStart;
                     }
                 } else {
-                    throw new Error(`Illegal character in verb: "${char}" (line ${line})`);
+                    throw assembleError(line, `Illegal character in verb: "${char}"`);
                 }
                 break;
             }
+            
             case State.FindOperandStart: {
-                if(!testWhitespace(char)) {
+                if(!WHITESPACE.test(char)) {
                     if(char === "\"") {
                         state = State.FindStringEnd;
                     } else {
@@ -99,25 +102,35 @@ const tokenize = (text) => {
                 }
                 break;
             }
+            
             case State.FindStringEnd: {
+
+                // end quote
                 if(char === "\"") { 
                     tokens.push({type: Token.String, string: JSON.parse('"' + curToken + '"')});
                     state = State.AfterOperand;
                 } else if(char === "\\") {
+                    // escape sequence
                     state = State.HandleEscape;
                 } else {
                     curToken += char;
                 }
                 break;
+
             }
+
             case State.HandleEscape: {
+            
                 // do nothing, let the parser advance
                 curToken += "\\" + char;
                 state = State.FindStringEnd;
                 break;
+            
             }
+
             case State.FindOperandEnd: {
-                if(char === "," || char === ";" || testWhitespace(char)) {
+
+                if(char === "," || char === ";" || WHITESPACE.test(char)) {
 
                     // parse operand
                     let match;
@@ -134,7 +147,7 @@ const tokenize = (text) => {
                     } else if(LABEL.test(curToken)) {
                         tokens.push({type: Token.Label, name: curToken, line: line});
                     } else {
-                        throw new Error(`Illegal operand "${curToken}" (line ${line})`);
+                        throw assembleError(line, `Illegal operand "${curToken}`);
                     }
 
                     stay = true;
@@ -145,6 +158,7 @@ const tokenize = (text) => {
                 }
                 break;
             }
+            
             case State.AfterOperand: {
                 if(char === ",") {
                     state = State.FindOperandStart;
@@ -155,12 +169,14 @@ const tokenize = (text) => {
                 }
                 break;
             }
+
             case State.FindCommentEnd: {
                 if(char === "\n") {
                     state = State.FindVerbStart; 
                 }
                 break;
             }
+
         }
 
         if(stay) {
@@ -172,8 +188,7 @@ const tokenize = (text) => {
     }
 
     if(state !== State.FindVerbStart) {
-        console.error(state);
-        throw new Error("Reached unexpected end of input");
+        throw assembleError(line, "Reached unexpected end of input");
     }
 
     return tokens;
@@ -199,21 +214,21 @@ const opcodeDictionary = createOpcodeDictionary();
 
 const checkType = (token, type) => {
     if(!token || token.type !== type) {
-        throw new Error(`Expected ${type} but got ${token?.type ?? "end of input"} (line ${token.line})`);
+        throw assembleError(token.line, `Expected ${type} but got ${token?.type ?? "end of input"}`);
     }
     return token;
 };
 
 const checkIsSource = (token) => {
     if(token.type !== Token.Number && token.type !== Token.Register && token.type !== Token.Label) {
-        throw new Error(`Expected source but got ${token?.type ?? "end of input"} (line ${token.line})`);
+        throw assembleError(token.line, `Expected source but got ${token?.type ?? "end of input"}`);
     }
     return token;
 };
 
 const checkIsImmediate = (token) => {
     if(!token.hasOwnProperty("value")) {
-        throw new Error(`Expected immediate value but got ${token?.type ??  "end of input"} (line ${token.line})`);
+        throw assembleError(token.line, `Expected immediate value but got ${token?.type ??  "end of input"}`);
     }
     return token;
 };
@@ -226,43 +241,43 @@ const parse = (tokens) => {
         
         const token = tokens.shift();
         if(token.type === Token.LabelDeclaration) {
-            instructions.push({labelDeclaration: true, name: token.name});
+            instructions.push({labelDeclaration: true, name: token.name, line: token.line});
         } else if(token.type === Token.Instruction) {
             
             const instruction = opcodeDictionary[token.name];
             if(!instruction) {
 
                 // builtins
-                if(token.name === "byte" || token.name === "BYTE") {
+                if(token.name.toLowerCase() === "byte") {
                     const values = [];
                     while(tokens[0]?.hasOwnProperty("value")) {
                         const value = tokens.shift().value;
-                        if(value > 0xff) throw new Error(`Encountered value too large to fit within byte (line ${token.line})`);
+                        if(value > 0xff) throw assembleError(token.line, `Encountered value too large to fit within byte`);
                         values.push(value);
                     }
                     instructions.push({data: values});
                     continue;
                 }
                 
-                if(token.name === "word" || token.name === "WORD") {
+                if(token.name.toLowerCase() === "word") {
                     const values = [];
                     while(tokens[0]?.hasOwnProperty("value")) {
                         const value = tokens.shift().value;
-                        if(value > 0xffff) throw new Error(`Encountered value too large to fit within byte (line ${token.line})`);
+                        if(value > 0xffff) throw assembleError(token.line, `Encountered value too large to fit within word`);
                         values.push(value & 0xff, value >> 8);
                     }
                     instructions.push({data: values});
                     continue;
                 }
                 
-                if(token.name === "string" || token.name === "STRING") {
+                if(token.name.toLowerCase() === "string") {
                     // TODO: fix this lazy string encoding
                     const string = checkType(tokens.shift(), Token.String).string;
                     instructions.push({data: string.split("").map(char => char.charCodeAt(0) & 0xff)});
                     continue;
                 }
 
-                throw new Error(`Unknown instruction "${token.name}" (line ${token.line})`);
+                throw assembleError(token.line, `Unknown instruction "${token.name}"`);
 
             }
             
@@ -297,10 +312,10 @@ const parse = (tokens) => {
                 break;
             }
 
-            instructions.push({opcode: instruction.opcode, pattern: instruction.operands, operands: operands});
+            instructions.push({opcode: instruction.opcode, pattern: instruction.operands, operands: operands, line: token.line});
 
         } else {
-            throw new Error(`Unexpected ${token.type} while parsing, anticipated a label declaration or instruction (line ${token.line})`);
+            throw assembleError(token.line, `Unexpected ${token.type} while parsing, anticipated a label declaration or instruction`);
         }
 
     }
@@ -339,7 +354,7 @@ const assemble = (text) => {
     // resolve labels
     for(const instruction of instructions) {
         if(instruction.labelDeclaration) {
-            if(labels[instruction.name]) throw new Error(`Duplicate label name ${instruction.name}`);
+            if(labels[instruction.name]) throw assembleError(instruction.line, `Duplicate label name ${instruction.name}`);
             labels[instruction.name] = offset;
         } else if(instruction.data) {
             offset += instruction.data.length;
@@ -361,7 +376,7 @@ const assemble = (text) => {
             for(const operand of instruction.operands) {
                 if(operand.type === Token.Label) {
                     if(!labels.hasOwnProperty(operand.name)) {
-                        throw new Error(`Unknown label "${operand.name}"`);
+                        throw assembleError(instruction.line, `Unknown label "${operand.name}"`);
                     }
                     operand.value = labels[operand.name];
                 }
