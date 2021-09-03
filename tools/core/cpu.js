@@ -440,8 +440,6 @@ const step = (CPU) => {
         if(!CPU.predicateCondition) return;
     }
 
-    //console.log(insn.name, operands);
-
     insn.handler(CPU, ...operands);
 
 };

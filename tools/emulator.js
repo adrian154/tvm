@@ -121,7 +121,7 @@ const reassemble = () => {
     try {
         const assembled = assemble(editor.value);
         write(cpu, assembled.code);
-        console.log(assembled.symbols);
+        console.log("Symbol table: ", assembled.symbols);
         reset(true);
         showPopup("Successfully assembled!");
     } catch(error) {

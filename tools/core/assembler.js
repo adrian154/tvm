@@ -137,13 +137,13 @@ const tokenize = (text) => {
                     if((match = curToken.match(REGISTER))) {
                         tokens.push({type: Token.Register, register: parseInt(match[1], 16), line: line});
                     } else if((match = curToken.match(HEX_LITERAL))) {
-                        tokens.push({type: Token.Number, value: parseInt(match[1], 16), line: line});
+                        tokens.push({type: Token.Number, value: u16(parseInt(match[1], 16)), line: line});
                     } else if((match = curToken.match(BINARY_LITERAL))) {
-                        tokens.push({type: Token.Number, value: parseInt(match[1], 2), line: line});
+                        tokens.push({type: Token.Number, value: u16(parseInt(match[1], 2)), line: line});
                     } else if((match = curToken.match(CHAR_LITERAL))) {
-                        tokens.push({type: Token.Number, value: match[1].charCodeAt(0), line: line});
+                        tokens.push({type: Token.Number, value: match[1].charCodeAt(0) & 0xff, line: line});
                     } else if(DECIMAL_LITERAL.test(curToken)) {
-                        tokens.push({type: Token.Number, value: parseInt(curToken), line: line});
+                        tokens.push({type: Token.Number, value: u16(parseInt(curToken)), line: line});
                     } else if(LABEL.test(curToken)) {
                         tokens.push({type: Token.Label, name: curToken, line: line});
                     } else {
@@ -263,7 +263,6 @@ const parse = (tokens) => {
                     const values = [];
                     while(tokens[0]?.hasOwnProperty("value")) {
                         const value = tokens.shift().value;
-                        if(value > 0xffff) throw assembleError(token.line, `Encountered value too large to fit within word`);
                         values.push(value & 0xff, value >> 8);
                     }
                     instructions.push({data: values});
