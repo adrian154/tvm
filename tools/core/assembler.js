@@ -54,6 +54,8 @@ const tokenize = (text) => {
 
         const char = text[pos];
 
+        console.log(char, state);
+
         switch(state) {
             case State.FindVerbStart: {
                 if(NAME_CHAR.test(char)) {
@@ -77,7 +79,7 @@ const tokenize = (text) => {
                     tokens.push({type: Token.Instruction, name: curToken, line: line});
                     if(char == ".") {
                         state = State.FindVerbStart;
-                    }else {
+                    } else {
                         state = State.FindOperandStart;
                     }
                 } else {

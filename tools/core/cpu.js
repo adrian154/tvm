@@ -399,7 +399,6 @@ const step = (CPU) => {
     const src1Type = (opcodeFull & 0b01000000) >> 6;
     const insn = Instructions[opcode];
 
-    console.log(CPU.registers[IP] - 1, opcodeFull);
     if(!insn) {
         throw new Error(`Assembly error: Unknown opcode 0x${opcode.toString(16)}`);
     }
