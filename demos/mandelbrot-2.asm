@@ -11,9 +11,9 @@ yloop:
         shl r0, 3, r2
         shl r1, 3, r3
 
-        ; flag = whether pixel is in the mandelbrot set
-        sf.
-
+        ; rb = whether the pixel is in the set
+        mov 1, rb
+        
         ; r4, r5 = z components
         ; r6 = zloop counter
         mov 0, r4
@@ -35,7 +35,7 @@ yloop:
 
             sub r7, r8, r7
             add r7, r2, r7
-            ; r7 = next z real component
+            ; r7 = Re(z)^2 - Im(z)^2 + x
 
             mul r4, r5, r8, r9
             shr r9, 8, r9
@@ -49,9 +49,9 @@ yloop:
             mov r8, r5
 
             ; if any component exceeds one, assume it's not bounded and leave the loop
-            ifg r4, 255 cf.
-            ifg r5, 255 cf.
-            ifnf. mov zloop-exit, rf
+            ifg r4, 255 mov 0, rb
+            ifg r5, 255 mov 0, rb
+            ifeq rb, 0 mov zloop-exit, rf
 
             ifeq r6, 32 mov zloop-exit, rf
             add r6, 1, r6
@@ -59,8 +59,8 @@ yloop:
         zloop-exit: 
 		
         ; print step
-		iff. out '#'
-		ifnf. out '.'
+		if rb out '#'
+        ifeq rb, 0 out '.'
 
 		ifeq r0, 32 mov exitxloop, rf
 		add r0, 1, r0
