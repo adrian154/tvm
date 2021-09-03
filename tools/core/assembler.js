@@ -50,6 +50,8 @@ const tokenize = (text) => {
             line++;
         }
 
+        console.log(char, state);
+
         switch(state) {
 
             case State.FindVerbStart: {

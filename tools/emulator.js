@@ -85,7 +85,7 @@ const singlestep = () => {
     }
 };
 
-let speed = 200;
+let speed = 1000;
 
 const run = () => {
     if(running) {
@@ -94,7 +94,7 @@ const run = () => {
         }
         updateDisplays();
     }
-    setTimeout(run, 10);
+    requestAnimationFrame(run);
 };
 
 const reset = (soft) => {
