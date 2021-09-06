@@ -59,7 +59,7 @@ let running =  false;
 
 const updateDisplays = () => {
     statusMsg.textContent = running ? "RUNNING" : "PAUSED";
-    otherStateMsg.textContent = `Flag is ${cpu.flag ? "set" : "unset"}; the next instruction ${(cpu.applyPredicate ? cpu.predicateCondition : true) ? "will" : "will not"} be executed`;
+    otherStateMsg.textContent = `Flag: ${cpu.flag ? "set" : "unset"}, next instruction: ${(cpu.applyPredicate ? cpu.predicateCondition : true) ? "execute" : "skip"}`;
     if(running) {
         runButton.classList.remove("green");
         runButton.classList.add("red");
@@ -80,7 +80,7 @@ const singlestep = () => {
     try {
         step(cpu);
     } catch(error) {
-        showPopup("Runtime error: " + error.message, showPopup);
+        alert("Runtime error: " + error.message);
         running = false;
     }
 };
@@ -125,7 +125,8 @@ const reassemble = () => {
         reset(true);
         showPopup("Successfully assembled!");
     } catch(error) {
-        showPopup(error.message, true);
+        showPopup("Syntax error!", true);
+        outputBox.textContent = error.message;
     }
 };
 

@@ -12,7 +12,7 @@
         <div id="popup">
             <span>text goes here</span>
         </div>
-        <div style="display: flex; flex-direction: column; height: 100%;">
+        <div class="flex-col full-height">
             <div id="ribbon">
                 <div id="buttons">
                     <button onclick="toggle()" id="run-button">Run</button>
@@ -27,15 +27,21 @@
                     <a href="https://github.com/adrian154/tvm/blob/main/TVM.md">Read the docs...</a>
                 </p>
             </div>
-            <div id="pane-container">
-                <div id="editor-pane" class="pane">
+            <div class="flex-row full-height">
+                <div id="editor-pane">
                     <textarea id="editor" spellcheck="false" placeholder="Code goes here..."></textarea>
                 </div>
-                <div id="right-panes">
-                    <div id="top-pane" class="pane">
-                        <pre id="output"></pre>
+                <div class="flex-col" id="right-panes">
+                    <div id="top-pane">
+                        <div class="layer" id="output-layer">
+                            <pre id="output"></pre>
+                        </div>
+                        <div class="layer" id="display-layer">
+                            <canvas id="display" width="256" height="256"></canvas>
+                        </div>
+
                     </div>
-                    <div id="bottom-pane" class="pane">
+                    <div id="bottom-pane">
                         <select id="number-format">
                             <option value="16">show registers in hex</option>
                             <option value="10">show registers in decimal</option>

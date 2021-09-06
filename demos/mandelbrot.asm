@@ -8,7 +8,7 @@ yloop:
 	xloop:
 
         ; r2, r3: normalized coordinates
-        ; 3 bit shift includes implicit divide by 32
+        ; bit shift include implicit divide 
         shl r0, 2, r2
         shl r1, 3, r3
         
