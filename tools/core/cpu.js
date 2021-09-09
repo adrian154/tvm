@@ -16,17 +16,18 @@ const SRC_TYPE_IMM = 1;
 const createCPU = () => ({
     applyPredicate: false,
     predicateCondition: true,
-    memory: new Uint8Array(65536),
+    /*memory: new Uint8Array(65536),*/
     registers: new Uint16Array(16).fill(0),
     flag: false
 });
 
+// helper functions
 const storeWord = (CPU, offset, value) => {
-    CPU.memory[u16(offset)] = value & 0xff;
-    CPU.memory[u16(offset + 1)] = (value & 0xff00) >>> 8;
+    CPU.store(value & 0xff, offset);
+    CPU.store((value & 0xff00) >> 8, offset + 1);
 };
 
-const readWord = (CPU, offset) => CPU.memory[u16(offset)] | (CPU.memory[u16(offset + 1)] << 8);
+const readWord = (CPU, offset) => CPU.read(offset) | (CPU.memory(offset + 1) << 8);
 
 const u8 = value => value & 0xff;
 const u16 = value => value & 0xffff;
@@ -55,7 +56,7 @@ const Instructions = {
         name: "STOREB",
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB) => {
-            CPU.memory[SrcB] = u8(SrcA);
+            storeByte(CPU, SrcB, SrcA);
         }
     },
     4: {
@@ -308,7 +309,7 @@ const Instructions = {
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
             CPU.registers[SP]--;
-            CPU.memory[CPU.registers[SP]] = u8(Src);
+            storeByte(CPU, CPU.registers[SP], Src);
         }
     },
     36: {
@@ -348,7 +349,7 @@ const Instructions = {
         name: "OSTOREB",
         operands: OperandPattern.SrcSrcI,
         handler: (CPU, SrcA, SrcB, I) => {
-            CPU.memory[u16(SrcB + I)] = u8(SrcA);
+            storeByte(CPU, SrcB + I, SrcA);
         }
     },
     41: {
@@ -400,7 +401,7 @@ const step = (CPU) => {
     const insn = Instructions[opcode];
 
     if(!insn) {
-        throw new Error(`Assembly error: Unknown opcode 0x${opcode.toString(16)}`);
+        throw new Error(`Unknown opcode 0x${opcode.toString(16)} (byte 0x${opcodeFull.toString(16)})`);
     }
 
     // read operands

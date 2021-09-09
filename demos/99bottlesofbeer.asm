@@ -45,4 +45,4 @@ doneprint:
 message0: string " bottles of beer on the wall, " byte 0
 message1: string " bottles of beer\nTake one down, pass it around, " byte 0
 message2: string " bottles of beer on the wall.\n" byte 0
-message3: string "No more bottles of beer on the wall, no more bottles of beer on the wall. Go to the store and buy some more, 99 bottles of beer on the wall." byte 0
+message3: string "No more bottles of beer on the wall, no more bottles of beer. Go to the store and buy some more, 99 bottles of beer on the wall." byte 0

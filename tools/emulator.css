@@ -13,6 +13,10 @@
     height: 100%;
 }
 
+.info-text {
+    color: rgba(255, 255, 255, 50%);
+}
+
 /* layout styles */
 body, html {
     height: 100%;
@@ -43,12 +47,16 @@ body, html {
 
 .layer {
     position: absolute;
-    display: none;
+    visibility: hidden;
     width: 100%;
     height: 100%;
     padding: 1.0em;
     box-sizing: border-box;
     overflow: auto;
+}
+
+.shown {
+    visibility: visible;
 }
 
 #top-pane pre {
@@ -57,7 +65,7 @@ body, html {
 
 #bottom-pane {
     flex: 50%;
-    padding: 1.0em;
+    padding: 1.5em;
     background-color: #282828;
 }
 

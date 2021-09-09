@@ -1,13 +1,21 @@
-const bottomPane = document.getElementById("bottom-pane");
-const table = document.getElementById("registers");
-const statusMsg = document.getElementById("status");
-const otherStateMsg = document.getElementById("other-state");
-const outputBox = document.getElementById("output");
+// editor elements
 const editor = document.getElementById("editor");
 const runButton = document.getElementById("run-button");
-const formatSelector = document.getElementById("number-format");
 const uploader = document.getElementById("uploader");
 const popup = document.getElementById("popup");
+
+// cpu info pane
+const otherStateMsg = document.getElementById("other-state");
+const formatSelector = document.getElementById("number-format");
+const table = document.getElementById("registers");
+const statusMsg = document.getElementById("status");
+
+// output layers
+const outputLayer = document.getElementById("output-layer");
+const outputBox = document.getElementById("output");
+
+const displayLayer = document.getElementById("display-layer");
+const display = document.getElementById("display");
 
 editor.addEventListener("keydown", (event) => {
     if(event.key === "Tab") {
@@ -48,6 +56,7 @@ const addRegisterRows = () => {
 
 const registerCells = addRegisterRows();
 
+// set up CPU
 const cpu = createCPU();
 
 cpu.onPrint = (char) => {
@@ -166,6 +175,18 @@ const showPopup = (text, error) => {
         popup.style.color = "black";
     }
 };
+
+const showLayer = (layer) => {
+    if(layer === "output") {
+        outputLayer.classList.add("shown");
+        displayLayer.classList.remove("shown");
+    } else if(layer === "display") {
+        outputLayer.classList.remove("shown");
+        displayLayer.classList.add("shown");
+    }
+};
+
+showLayer("output");
 
 popup.addEventListener("animationend", () => {
     popup.classList.remove("animate");
