@@ -5,9 +5,7 @@ const OperandPattern = Object.freeze({
     SrcR: 3,
     SrcSrc: 4,
     SrcSrcR: 5,
-    SrcSrcRR: 6,
-    SrcSrcI: 7,
-    SrcIR: 8
+    SrcSrcRR: 6
 });
 
 const SRC_TYPE_REG = 0;
@@ -16,22 +14,27 @@ const SRC_TYPE_IMM = 1;
 const createCPU = () => ({
     applyPredicate: false,
     predicateCondition: true,
-    memory: new Uint8Array(65536),
     registers: new Uint16Array(16).fill(0),
     flag: false
 });
 
+// memory is handled by two functions
+// CPU.store(value, offset) 
+// CPU.read(offset)
+// one byte is handled at a time
+// offset should be AND'd with 0xffff
+
+// util funcs for multibyte access
 const storeWord = (CPU, offset, value) => {
-    CPU.memory[u16(offset)] = value & 0xff;
-    CPU.memory[u16(offset + 1)] = (value & 0xff00) >>> 8;
+    CPU.store(value & 0xff, u16(offset));
+    CPU.store((value & 0xff00) >> 8, u16(offset + 1));
 };
 
-const readWord = (CPU, offset) => CPU.memory[u16(offset)] | (CPU.memory[u16(offset + 1)] << 8);
+const readWord = (CPU, offset) => CPU.read(u16(offset)) | (CPU.read(u16(offset + 1)) << 8);
 
+// other misc helpers
 const u8 = value => value & 0xff;
 const u16 = value => value & 0xffff;
-
-// Sign extend 16-bit to 32-bit
 const signExt = value => (value >> 15 ? 0xffff : 0x0000) << 16 | value;
 
 // Special registers
@@ -55,7 +58,7 @@ const Instructions = {
         name: "STOREB",
         operands: OperandPattern.SrcSrc,
         handler: (CPU, SrcA, SrcB) => {
-            CPU.memory[SrcB] = u8(SrcA);
+            CPU.store(SrcA, SrcB);
         }
     },
     4: {
@@ -69,7 +72,7 @@ const Instructions = {
         name: "LOADB",
         operands: OperandPattern.SrcR,
         handler: (CPU, Src, R) => {
-            CPU.registers[R] = CPU.memory[Src];
+            CPU.registers[R] = CPU.read(Src);
         }
     },
     6: {
@@ -308,7 +311,7 @@ const Instructions = {
         operands: OperandPattern.Src,
         handler: (CPU, Src) => {
             CPU.registers[SP]--;
-            CPU.memory[CPU.registers[SP]] = u8(Src);
+            CPU.store(Src, CPU.registers[SP]);
         }
     },
     36: {
@@ -323,7 +326,7 @@ const Instructions = {
         name: "POPB",
         operands: OperandPattern.R,
         handler: (CPU, R) => {
-            CPU.registers[R] = CPU.memory[CPU.registers[SP]];
+            CPU.registers[R] = CPU.read(CPU.registers[SP]);
             CPU.registers[SP] = CPU.registers[SP] + 1;
         }
     },
@@ -343,95 +346,61 @@ const Instructions = {
                 CPU.onPrint(Src & 0xff);
             }
         }
-    },
-    40: {
-        name: "OSTOREB",
-        operands: OperandPattern.SrcSrcI,
-        handler: (CPU, SrcA, SrcB, I) => {
-            CPU.memory[u16(SrcB + I)] = u8(SrcA);
-        }
-    },
-    41: {
-        name: "OSTOREW",
-        operands: OperandPattern.SrcSrcI,
-        handler: (CPU, SrcA, SrcB, I) => {
-            storeWord(CPU, u16(SrcB + I), SrcA);
-        }
-    },
-    42: {
-        name: "OLOADB",
-        operands: OperandPattern.SrcIR,
-        handler: (CPU, Src, Imm, R) => {
-            CPU.registers[R] = CPU.memory[u16(Src + Imm)];
-        }
-    },
-    43: {
-        name: "OLOADW",
-        operands: OperandPattern.SrcIR,
-        handler: (CPU, Src, Imm, R) => {
-            CPU.registers[R] = readWord(CPU, u16(Src + Imm));
-        }
-    },
-};
-
-const readSrc = (CPU, type) => {
-    if(type === SRC_TYPE_IMM) {
-        return readInsnWord(CPU);
-    } else {
-        return CPU.registers[CPU.memory[CPU.registers[IP]++] & 0x0F];
     }
 };
 
-const readInsnWord = (CPU) => {
-    const value = readWord(CPU, CPU.registers[IP]);
-    CPU.registers[IP] += 2;
-    return value;
+// operand reading helpers
+const fetchInsnByte = (CPU) => CPU.read(CPU.registers[IP]++);
+const readSingleRegister = (CPU) => fetchInsnByte(CPU) & 0x0F;
+const readImmediate = (CPU) => fetchInsnByte(CPU) | (fetchInsnByte(CPU) << 8);
+const readSrc = (CPU, type) => type === SRC_TYPE_REG ? readSingleRegister(CPU) : readImmediate(CPU); 
+const readTwoSrc = (CPU, type0, type1) => type0 === SRC_TYPE_REG && type1 === SRC_TYPE_REG ? readPackedRegs(CPU) : [readSrc(CPU, type0), readSrc(CPU, type1)];
+const readPackedRegs = (CPU) => {
+    const byte = fetchInsnByte(CPU);
+    return [byte >> 4, byte & 0x0F];
 };
-
-const readRegister = (CPU) => CPU.memory[CPU.registers[IP]++] & 0x0F;
 
 const step = (CPU) => {
 
     // decode instruction
     const opcodeFull = CPU.memory[CPU.registers[IP]++];
-    const opcode = opcodeFull & 0b111111; // take off top two bits which are used for src/dest
-    const src0Type = (opcodeFull & 0b10000000) >> 7;
-    const src1Type = (opcodeFull & 0b01000000) >> 6;
+    const opcode = opcodeFull & 0b111111; // opcode = lower 6 bits
+    const src0Type = (opcodeFull >> 6) & 0b10;
+    const src1Type = (opcodeFull >> 6) & 0b01;
     const insn = Instructions[opcode];
 
     if(!insn) {
-        throw new Error(`Assembly error: Unknown opcode 0x${opcode.toString(16)}`);
+        throw new Error(`Unknown opcode ${opcode} (byte 0x${opcodeFull.toString(16)})`);
     }
 
     // read operands
+    // this part is a little horrible
     let operands;
     switch(insn.operands) {
         case OperandPattern.NONE:
             operands = [];
         break;
         case OperandPattern.R:
-            operands = [readRegister(CPU)];
+            operands = [readSingleRegister(CPU)];
         break;
         case OperandPattern.Src:
-            operands = [readSrc(CPU, src0Type)];
+            operands = [src0Type === SRC_TYPE_IMM ? readImmediate(CPU) : readSingleRegister(CPU)];
         break;
         case OperandPattern.SrcR:
-            operands = [readSrc(CPU, src0Type), readRegister(CPU)];
+            if(src0Type === SRC_TYPE_REG)
+                operands = readPackedRegs(CPU);
+            else
+                operands = [readImmediate(CPU), readSingleRegister(CPU)];
         break;
         case OperandPattern.SrcSrc:
-            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type)];
+            operands = readTwoSrc(CPU, src0Type, src1Type);
         break;
         case OperandPattern.SrcSrcR:
-            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU)];
+            operands = readTwoSrc(CPU, src0Type, src1Type);
+            operands.push(readSingleRegister(CPU));
         break;
         case OperandPattern.SrcSrcRR:
-            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU), readRegister(CPU)];
-        break;
-        case OperandPattern.SrcSrcI:
-            operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readInsnWord(CPU)];
-        break;
-        case OperandPattern.SrcIR:
-            operands = [readSrc(CPU, src0Type), readInsnWord(CPU), readRegister(CPU)];
+            operands = readTwoSrc(CPU, src0Type, src1Type).concat(readPackedRegs(CPU));
         break;
     }
     
