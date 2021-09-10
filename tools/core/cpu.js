@@ -351,14 +351,9 @@ const Instructions = {
 
 // operand reading helpers
 const fetchInsnByte = (CPU) => CPU.read(CPU.registers[IP]++);
-const readSingleRegister = (CPU) => fetchInsnByte(CPU) & 0x0F;
+const readRegister = (CPU) => fetchInsnByte(CPU) & 0x0F;
 const readImmediate = (CPU) => fetchInsnByte(CPU) | (fetchInsnByte(CPU) << 8);
-const readSrc = (CPU, type) => type === SRC_TYPE_REG ? readSingleRegister(CPU) : readImmediate(CPU); 
-const readTwoSrc = (CPU, type0, type1) => type0 === SRC_TYPE_REG && type1 === SRC_TYPE_REG ? readPackedRegs(CPU) : [readSrc(CPU, type0), readSrc(CPU, type1)];
-const readPackedRegs = (CPU) => {
-    const byte = fetchInsnByte(CPU);
-    return [byte >> 4, byte & 0x0F];
-};
+const readSrc = (CPU, type) => type === SRC_TYPE_REG ? CPU.registers[readRegister(CPU)] : readImmediate(CPU); 
 
 const step = (CPU) => {
 
@@ -377,31 +372,13 @@ const step = (CPU) => {
     // this part is a little horrible
     let operands;
     switch(insn.operands) {
-        case OperandPattern.NONE:
-            operands = [];
-        break;
-        case OperandPattern.R:
-            operands = [readSingleRegister(CPU)];
-        break;
-        case OperandPattern.Src:
-            operands = [src0Type === SRC_TYPE_IMM ? readImmediate(CPU) : readSingleRegister(CPU)];
-        break;
-        case OperandPattern.SrcR:
-            if(src0Type === SRC_TYPE_REG)
-                operands = readPackedRegs(CPU);
-            else
-                operands = [readImmediate(CPU), readSingleRegister(CPU)];
-        break;
-        case OperandPattern.SrcSrc:
-            operands = readTwoSrc(CPU, src0Type, src1Type);
-        break;
-        case OperandPattern.SrcSrcR:
-            operands = readTwoSrc(CPU, src0Type, src1Type);
-            operands.push(readSingleRegister(CPU));
-        break;
-        case OperandPattern.SrcSrcRR:
-            operands = readTwoSrc(CPU, src0Type, src1Type).concat(readPackedRegs(CPU));
-        break;
+        case OperandPattern.NONE:       operands = []; break;
+        case OperandPattern.R:          operands = [readRegister(CPU)]; break;
+        case OperandPattern.Src:        operands = [readSrc(CPU, src0Type)]; break;
+        case OperandPattern.SrcR:       operands = [readSrc(CPU, src0Type), readRegister(CPU)]; break;
+        case OperandPattern.SrcSrc:     operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type)]; break;
+        case OperandPattern.SrcSrcR:    operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU)]; break;
+        case OperandPattern.SrcSrcRR:   operands = [readSrc(CPU, src0Type), readSrc(CPU, src1Type), readRegister(CPU), readRegister(CPU)]; break;
     }
     
     if(CPU.applyPredicate) {

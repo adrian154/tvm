@@ -6,7 +6,7 @@
 
 # General Info
 
-TVM is 16-bit and can address up to 64K of memory. Numbers are stored in little-endian order. 
+TVM is 16-bit and can address up to 64K of memory at a time. Numbers are stored in little-endian order. 
 
 # Registers
 
@@ -25,31 +25,27 @@ The first byte of each instruction has this structure:
     * Bit 7: Whether the first source operand is a register (0) or an immediate value (1)
 
 There are two types of operands:
-* **Sources**: Any value which is not modified in the instruction. A source can be a 16-bit immediate value or a register; this is determined by the upper 2 bits of the first byte in the instruction.
+* **Sources**: A value which is not modified in the operation. A source can be a 16-bit immediate value or a register, determined by the source type bits in the opcode.
 * **Registers**: A reference to a register.
 
 Registers are encoded as a single byte containing the register number. Immediate values are encoded as two bytes in little-endian order.
 
 All instructions have one of seven fixed operand patterns.
 
-* (No registers)
-* **R**
+* (No operands)
+* **Register**
 * **Source**
 * **Source, Register**
 * **Source, Source**
 * **Source, Source, Register** 
 
-There's also two special operand patterns for offset loads/stores:
-* **Source, Immediate, Register**
-* **Source, Source, Immediate**
-
-The order of the operands is the order they will be stored as part of the intruction.
+Operands are stored sequentially and never packed together.
 
 # Instructions
 
 |Opcode|Mnemonic|Operands|Description|
 |-|-|-|-|
-|`0x0`|NOP|None|Does  nothing|
+|`0x0`|NOP|None|Does nothing|
 |`0x2`|MOV|Source, Register|Sets value of Register to value of Source|
 |`0x3`|STOREB|Source(Value), Source(Address)|Stores lower byte of Value into memory at \[Address]|
 |`0x4`|STOREW|Source(Value), Source(Address)|Stores Value into memory at \[Address] and \[Address + 1]|
@@ -88,10 +84,6 @@ The order of the operands is the order they will be stored as part of the intruc
 |`0x25`|POPB|Register|Pops a byte from the stack into Register and moves the stack pointer up one byte|
 |`0x26`|POPW|Register|Pops a word from the stack into Register and moves the stack pointer up two bytes|
 |`0x27`|OUT|Source|Prints lower byte of Source to stdout|
-|`0x28`|OSTOREB|Source(A), Source(B), I|Stores A at address B + I|
-|`0x29`|OSTOREW|Source(A), Source(B), I|Full word version of OSTOREB|
-|`0x30`|OLOADB|Source, I, R|Loads byte at address Source + I into register R|
-|`0x31`|OLOADW|Full word version of OLOADB|
 
 # Built-in assembler notes
 
