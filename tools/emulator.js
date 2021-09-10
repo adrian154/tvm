@@ -58,6 +58,9 @@ const registerCells = addRegisterRows();
 
 // set up CPU
 const cpu = createCPU();
+cpu.memory = new Uint8Array(0x10000);
+cpu.store = (value, offset) => cpu.memory[u16(offset)] = value;
+cpu.read = (offset) => cpu.memory[u16(offset)];
 
 cpu.onPrint = (char) => {
     outputBox.textContent += String.fromCharCode(char);

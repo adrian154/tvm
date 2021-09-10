@@ -2,7 +2,7 @@
 
 **TVM (Tiny Virtual Machine)** is a made-up CPU architecture.
 
-[Try it out!](https://bithole.dev/tvm/tools/emulator.html)
+[Try it out!](https://bithole.dev/tvm/emulator.html)
 
 # General Info
 
